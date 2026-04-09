@@ -6,7 +6,20 @@ import { updateProfileSchema, changePasswordSchema } from './users.schema.js';
 export async function getMe(request, reply) {
   const user = await prisma.user.findUnique({
     where: { id: request.user.id },
-    select: { id: true, name: true, email: true, phone: true, role: true, isActive: true, createdAt: true },
+    // Поле isActive видалено, оскільки воно відсутнє у схемі Prisma User
+    select: { 
+      id: true, 
+      name: true, 
+      email: true, 
+      phone: true, 
+      role: true, 
+      createdAt: true, 
+      updatedAt: true,
+      specialtyId: true,
+      photoUrl: true,
+      bioUA: true,
+      bioEN: true
+    },
   });
   if (!user) return reply.code(404).send({ statusCode: 404, error: 'Not Found', message: 'Користувача не знайдено' });
   return reply.send(user);
@@ -21,7 +34,18 @@ export async function updateMe(request, reply) {
   const user = await prisma.user.update({
     where: { id: request.user.id },
     data: parsed.data,
-    select: { id: true, name: true, email: true, phone: true, role: true, updatedAt: true },
+    select: { 
+      id: true, 
+      name: true, 
+      email: true, 
+      phone: true, 
+      role: true, 
+      updatedAt: true,
+      specialtyId: true,
+      photoUrl: true,
+      bioUA: true,
+      bioEN: true
+    },
   });
   return reply.send(user);
 }

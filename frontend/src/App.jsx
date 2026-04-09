@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchMe } from './store/authSlice.js';
 import AppRouter from './router/AppRouter.jsx';
 import { Box, CircularProgress } from '@mui/material';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 
 export default function App() {
   const dispatch = useDispatch();
@@ -33,5 +34,9 @@ export default function App() {
     );
   }
 
-  return <AppRouter />;
+  return (
+    <ErrorBoundary>
+      <AppRouter />
+    </ErrorBoundary>
+  );
 }

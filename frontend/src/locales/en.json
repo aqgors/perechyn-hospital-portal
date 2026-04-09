@@ -1,0 +1,112 @@
+{
+  "common": {
+    "appTitle": "Perechyn District Hospital",
+    "dashboard": "Dashboard",
+    "appeals": "Inquiries",
+    "newAppeal": "New Inquiry",
+    "profile": "Profile",
+    "admin": "Admin Panel",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "homePage": {
+    "heroTitlePre": "Perechyn Central District",
+    "heroTitleFocus": "Hospital",
+    "heroSubtitle": "Official web portal for citizen appeals, medical services, and interaction with the hospital administration.",
+    "ctaStart": "Start Now",
+    "ctaTitle": "Ready to Interact?",
+    "ctaSubtitle": "Register and submit your inquiries online. We will process them as soon as possible.",
+    "officialPortalLabel": "🏥 Official Hospital Portal",
+    "stat1Label": "Patients Annually",
+    "stat2Label": "Doctors & Staff",
+    "stat3Label": "24/7 Medical Care",
+    "stat4Label": "Processing Time <48h",
+    "featuresTitle": "Portal Features",
+    "featuresSubtitle": "Convenient tools for hospital interaction",
+    "feature1Title": "Inquiry Registration",
+    "feature1Desc": "Submit inquiries online 24/7 without the need for periodic hospital visits",
+    "feature2Title": "Fast Processing",
+    "feature2Desc": "Your inquiries are processed promptly. Track status in real time",
+    "feature3Title": "Data Security",
+    "feature3Desc": "Your personal data is protected by modern security and encryption standards",
+    "feature4Title": "Feedback System",
+    "feature4Desc": "Receive answers from doctors and administration directly on the portal",
+    "doctorsTitle": "Our Specialists",
+    "doctorsSubtitle": "Experienced doctors ready to help you",
+    "details": "Details"
+  },
+  "loginPage": {
+    "title": "System Login",
+    "email": "Email Address",
+    "password": "Password",
+    "submit": "Login",
+    "noAccount": "No account? Register"
+  },
+  "registerPage": {
+    "title": "Create Profile",
+    "name": "Full Name",
+    "submit": "Register",
+    "hasAccount": "Already have an account? Login"
+  },
+  "profilePage": {
+    "title": "My Profile",
+    "settings": "Settings",
+    "theme": "Theme",
+    "language": "Interface Language",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "appealsPage": {
+    "title": "My Appeals",
+    "createButton": "Create Appeal",
+    "noAppeals": "You don't have any appeals yet",
+    "status": "Status",
+    "date": "Date",
+    "doctor": "Doctor",
+    "appointment": "Appointment"
+  },
+  "newAppealPage": {
+    "title": "New Inquiry",
+    "subtitle": "Fill out the form and submit your inquiry",
+    "formTitle": "Subject",
+    "formDescription": "Detailed Description",
+    "formCategory": "Category",
+    "formPriority": "Priority",
+    "formDoctor": "Choose a Doctor",
+    "formDate": "Appointment Date",
+    "formTime": "Appointment Time",
+    "submit": "Submit Inquiry",
+    "placeholderTitle": "Briefly describe the subject of your inquiry",
+    "placeholderDescription": "Provide a detailed description of your problem or inquiry..."
+  },
+  "doctorCatalog": {
+    "title": "Medical Departments",
+    "allDoctors": "All Doctors",
+    "noDoctors": "No doctors found in this category.",
+    "bookButton": "Book Online",
+    "searchPlaceholder": "Search doctor by name..."
+  },
+  "appointment": {
+    "dialogTitle": "Book an Appointment",
+    "dialogSubtitle": "Choose a convenient date and time for your visit to",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "messageLabel": "Message to Doctor",
+    "submit": "Confirm Booking",
+    "success": "Your appointment has been successfully booked!",
+    "unauthorized": "Please log in to book an appointment."
+  },
+  "specialties": {
+    "therapy": "Therapy",
+    "cardiology": "Cardiology",
+    "surgery": "Surgery",
+    "pediatrics": "Pediatrics",
+    "neurology": "Neurology"
+  }
+}

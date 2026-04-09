@@ -7,15 +7,14 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Toaster } from 'react-hot-toast';
 import { store } from './store/index.js';
-import { theme } from './theme/theme.js';
+import { SettingsProvider } from './theme/ThemeContext.jsx';
 import App from './App.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
+        <SettingsProvider>
           <Toaster
             position="top-right"
             toastOptions={{
@@ -26,7 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             }}
           />
           <App />
-        </ThemeProvider>
+        </SettingsProvider>
       </BrowserRouter>
     </Provider>
   </React.StrictMode>

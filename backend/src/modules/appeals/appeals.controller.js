@@ -7,9 +7,13 @@ const SELECT = {
   title: true,
   description: true,
   status: true,
+  category: true,
+  appointmentDate: true,
+  appointmentTime: true,
   createdAt: true,
   updatedAt: true,
   user: { select: { id: true, name: true, email: true } },
+  doctor: { select: { id: true, name: true, specialty: true } },
 };
 
 export async function getMyAppeals(request, reply) {

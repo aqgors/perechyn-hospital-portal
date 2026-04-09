@@ -9,18 +9,26 @@ import {
 } from '@mui/material';
 import {
   LocalHospital, Menu as MenuIcon, AccountCircle, Dashboard, Description,
-  AdminPanelSettings, Logout, Person, AddCircle,
+  AdminPanelSettings, Logout, Person, AddCircle, DarkMode, LightMode,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+import { useSettings } from '../../theme/ThemeContext.jsx';
 import { logout } from '../../store/authSlice.js';
 
-const ROLE_LABELS = { ADMIN: 'Адміністратор', DOCTOR: 'Лікар', USER: 'Пацієнт' };
-
 export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const { user, isAuthenticated } = useSelector((s) => s.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { mode = 'light', toggleMode = () => {}, changeLanguage } = useSettings() || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const ROLE_LABELS = { 
+    ADMIN: t('common.admin'), 
+    DOCTOR: t('common.doctor', 'Лікар'), 
+    USER: t('common.patient', 'Пацієнт') 
+  };
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -35,10 +43,10 @@ export default function Navbar() {
 
   const navLinks = isAuthenticated
     ? [
-        { label: 'Кабінет', to: '/dashboard', icon: <Dashboard fontSize="small" /> },
-        { label: 'Мої звернення', to: '/appeals', icon: <Description fontSize="small" /> },
-        { label: 'Нове звернення', to: '/appeals/new', icon: <AddCircle fontSize="small" /> },
-        ...(isAdmin ? [{ label: 'Адмінка', to: '/admin', icon: <AdminPanelSettings fontSize="small" /> }] : []),
+        { label: t('common.dashboard'), to: '/dashboard', icon: <Dashboard fontSize="small" /> },
+        { label: t('common.appeals'), to: '/appeals', icon: <Description fontSize="small" /> },
+        { label: t('common.newAppeal'), to: '/appeals/new', icon: <AddCircle fontSize="small" /> },
+        ...(isAdmin ? [{ label: t('common.admin'), to: '/admin', icon: <AdminPanelSettings fontSize="small" /> }] : []),
       ]
     : [];
 
@@ -53,17 +61,18 @@ export default function Navbar() {
 
         {/* Logo */}
         <Box
-          component={RouterLink}
-          to="/"
-          sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit', flexGrow: { xs: 1, md: 0 }, mr: { md: 3 } }}
+          component="a"
+          href="/"
+          onClick={(e) => { e.preventDefault(); window.location.href = '/'; }}
+          sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit', flexGrow: { xs: 1, md: 0 }, mr: { md: 3 }, cursor: 'pointer' }}
         >
           <LocalHospital sx={{ fontSize: 28 }} />
           <Box>
             <Typography variant="subtitle1" fontWeight={700} lineHeight={1.1}>
-              Перечинська ЦРЛ
+              {t('common.appTitle')}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8, display: { xs: 'none', sm: 'block' } }}>
-              Вебпортал лікарні
+              {t('common.appSubtitle', 'Вебпортал лікарні')}
             </Typography>
           </Box>
         </Box>
@@ -87,6 +96,11 @@ export default function Navbar() {
 
         <Box sx={{ flexGrow: { xs: 0, md: 1 } }} />
 
+        {/* Theme Toggle */}
+        <IconButton color="inherit" onClick={toggleMode} sx={{ mr: 1 }}>
+          {mode === 'light' ? <DarkMode /> : <LightMode />}
+        </IconButton>
+
         {/* Auth buttons / avatar */}
         {isAuthenticated ? (
           <>
@@ -107,7 +121,7 @@ export default function Navbar() {
               <Typography variant="caption" color="text.secondary" sx={{ px: 2 }}>{user?.email}</Typography>
               <Divider sx={{ my: 1 }} />
               <MenuItem onClick={() => { navigate('/profile'); setAnchorEl(null); }}>
-                <ListItemIcon><Person fontSize="small" /></ListItemIcon>Профіль
+                <ListItemIcon><Person fontSize="small" /></ListItemIcon>{t('common.profile')}
               </MenuItem>
               {isAdmin && (
                 <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }}>
@@ -116,17 +130,17 @@ export default function Navbar() {
               )}
               <Divider />
               <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>Вийти
+                <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>{t('common.logout')}
               </MenuItem>
             </Menu>
           </>
         ) : (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button component={RouterLink} to="/login" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}>
-              Увійти
+              {t('common.login')}
             </Button>
             <Button component={RouterLink} to="/register" variant="contained" sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}>
-              Реєстрація
+              {t('common.register')}
             </Button>
           </Box>
         )}

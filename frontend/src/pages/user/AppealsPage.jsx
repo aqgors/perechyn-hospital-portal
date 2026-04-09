@@ -8,41 +8,31 @@ import {
 } from '@mui/material';
 import { AddCircle, Search } from '@mui/icons-material';
 import Navbar from '../../components/layout/Navbar.jsx';
+import { useTranslation } from 'react-i18next';
 import Footer from '../../components/layout/Footer.jsx';
 import AppealCard from '../../components/appeals/AppealCard.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import { fetchAppeals } from '../../store/appealsSlice.js';
 
 const STATUSES = [
-  { value: '', label: 'Всі статуси' },
-  { value: 'PENDING', label: 'Очікує' },
-  { value: 'IN_PROGRESS', label: 'В обробці' },
-  { value: 'RESOLVED', label: 'Вирішено' },
-  { value: 'REJECTED', label: 'Відхилено' },
-];
-
-const CATEGORIES = [
-  { value: '', label: 'Всі категорії' },
-  { value: 'GENERAL', label: 'Загальне' },
-  { value: 'COMPLAINT', label: 'Скарга' },
-  { value: 'SUGGESTION', label: 'Пропозиція' },
-  { value: 'REQUEST', label: 'Запит' },
-  { value: 'MEDICAL', label: 'Медичне' },
-  { value: 'ADMINISTRATIVE', label: 'Адміністративне' },
+  { value: '', label: 'common.allStatuses' },
+  { value: 'NEW', label: 'common.statusNew' },
+  { value: 'IN_PROGRESS', label: 'common.statusInProgress' },
+  { value: 'DONE', label: 'common.statusDone' },
 ];
 
 export default function AppealsPage() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { list: appeals, isLoading, meta } = useSelector((s) => s.appeals);
+  const { list: appeals, isLoading, meta = { total: 0, pages: 0 } } = useSelector((s) => s.appeals);
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
-  const [category, setCategory] = useState('');
 
   useEffect(() => {
-    dispatch(fetchAppeals({ page, limit: 9, ...(status && { status }), ...(category && { category }) }));
-  }, [dispatch, page, status, category]);
+    dispatch(fetchAppeals({ page, limit: 9, ...(status && { status }) }));
+  }, [dispatch, page, status]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -60,11 +50,8 @@ export default function AppealsPage() {
 
         {/* Filters */}
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-          <TextField select label="Статус" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} sx={{ minWidth: 160 }}>
-            {STATUSES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
-          </TextField>
-          <TextField select label="Категорія" value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }} sx={{ minWidth: 180 }}>
-            {CATEGORIES.map((c) => <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>)}
+          <TextField select label={t('appealsPage.status')} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} sx={{ minWidth: 200 }}>
+            {STATUSES.map((s) => <MenuItem key={s.value} value={s.value}>{t(s.label)}</MenuItem>)}
           </TextField>
         </Box>
 

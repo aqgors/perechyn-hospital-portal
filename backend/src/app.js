@@ -12,6 +12,8 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
 import { appealsRoutes } from './modules/appeals/appeals.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
+import { doctorsRoutes } from './modules/doctors/doctors.routes.js';
+import specialtiesRoutes from './modules/specialties/specialties.routes.js';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -44,6 +46,8 @@ export async function buildApp() {
   fastify.register(usersRoutes, { prefix: '/api/users' });
   fastify.register(appealsRoutes, { prefix: '/api/appeals' });
   fastify.register(adminRoutes, { prefix: '/api/admin' });
+  fastify.register(doctorsRoutes, { prefix: '/api/doctors' });
+  fastify.register(specialtiesRoutes, { prefix: '/api/specialties' });
 
   // Глобальний обробник помилок
   fastify.setErrorHandler((error, request, reply) => {

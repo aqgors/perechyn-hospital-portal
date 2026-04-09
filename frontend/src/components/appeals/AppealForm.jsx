@@ -4,52 +4,38 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Box, TextField, MenuItem, Button, Typography, CircularProgress } from '@mui/material';
 import { Send } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const schema = yup.object({
   title: yup.string().min(5, 'Мінімум 5 символів').max(200).required('Тема є обов\'язковою'),
   description: yup.string().min(20, 'Мінімум 20 символів').required('Опис є обов\'язковим'),
-  category: yup.string().required(),
   priority: yup.string().required(),
 });
 
-const CATEGORIES = [
-  { value: 'GENERAL', label: 'Загальне' },
-  { value: 'COMPLAINT', label: 'Скарга' },
-  { value: 'SUGGESTION', label: 'Пропозиція' },
-  { value: 'REQUEST', label: 'Запит' },
-  { value: 'MEDICAL', label: 'Медичне питання' },
-  { value: 'ADMINISTRATIVE', label: 'Адміністративне' },
-];
-
 const PRIORITIES = [
-  { value: 'LOW', label: 'Низький' },
-  { value: 'MEDIUM', label: 'Середній' },
-  { value: 'HIGH', label: 'Високий' },
-  { value: 'URGENT', label: 'Терміново' },
+  { value: 'LOW', label: 'common.priorityLow', fallback: 'Низький' },
+  { value: 'MEDIUM', label: 'common.priorityMedium', fallback: 'Середній' },
+  { value: 'HIGH', label: 'common.priorityHigh', fallback: 'Високий' },
+  { value: 'URGENT', label: 'common.priorityUrgent', fallback: 'Терміново' },
 ];
 
 export default function AppealForm({ onSubmit, isLoading }) {
+  const { t } = useTranslation();
   const { control, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: { title: '', description: '', category: 'GENERAL', priority: 'MEDIUM' },
+    defaultValues: { title: '', description: '', priority: 'MEDIUM' },
   });
 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Controller name="title" control={control} render={({ field }) => (
-        <TextField {...field} label="Тема звернення" error={!!errors.title} helperText={errors.title?.message} placeholder="Коротко опишіть суть вашого звернення" />
+        <TextField {...field} label={t('newAppealPage.formTitle')} error={!!errors.title} helperText={errors.title?.message} placeholder={t('newAppealPage.placeholderTitle')} />
       )} />
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-        <Controller name="category" control={control} render={({ field }) => (
-          <TextField {...field} select label="Категорія" error={!!errors.category} helperText={errors.category?.message}>
-            {CATEGORIES.map((c) => <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>)}
-          </TextField>
-        )} />
-
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr' }, gap: 2 }}>
         <Controller name="priority" control={control} render={({ field }) => (
-          <TextField {...field} select label="Пріоритет" error={!!errors.priority} helperText={errors.priority?.message}>
-            {PRIORITIES.map((p) => <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>)}
+          <TextField {...field} select label={t('newAppealPage.formPriority')} error={!!errors.priority} helperText={errors.priority?.message}>
+            {PRIORITIES.map((p) => <MenuItem key={p.value} value={p.value}>{t(p.label, p.fallback)}</MenuItem>)}
           </TextField>
         )} />
       </Box>
@@ -57,12 +43,12 @@ export default function AppealForm({ onSubmit, isLoading }) {
       <Controller name="description" control={control} render={({ field }) => (
         <TextField
           {...field}
-          label="Детальний опис"
+          label={t('newAppealPage.formDescription')}
           multiline
           rows={6}
           error={!!errors.description}
-          helperText={errors.description?.message || `${field.value.length} / мінімум 20 символів`}
-          placeholder="Детально опишіть вашу проблему або запит..."
+          helperText={errors.description?.message || `${field.value.length} / ${t('common.minChars', 'мінімум 20 символів')}`}
+          placeholder={t('newAppealPage.placeholderDescription')}
         />
       )} />
 

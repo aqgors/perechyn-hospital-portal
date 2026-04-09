@@ -11,6 +11,7 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  DOCTOR
 }
 
 enum RequestStatus {
@@ -20,32 +21,58 @@ enum RequestStatus {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
-  password   String
-  name       String
-  role       Role      @default(USER)
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  phone           String?
+  role            Role      @default(USER)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt      @map("updated_at")
 
-  requests   Request[]
-  logs       Log[]
+  // Fields for doctors (if role is DOCTOR)
+  specialtyId     String?   @map("specialty_id")
+  photoUrl        String?   @map("photo_url")
+  bioUA           String?   @db.Text @map("bio_ua")
+  bioEN           String?   @db.Text @map("bio_en")
+
+  specialty       Specialty? @relation(fields: [specialtyId], references: [id])
+  requests        Request[]  @relation("UserRequests")
+  appointments    Request[]  @relation("DoctorRequests")
+  logs            Log[]
 
   @@map("users")
 }
 
 model Request {
-  id          String        @id @default(cuid())
-  userId      String        @map("user_id")
-  title       String
-  description String        @db.Text
-  status      RequestStatus @default(NEW)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt       @map("updated_at")
+  id              String        @id @default(cuid())
+  userId          String        @map("user_id")
+  doctorId        String?       @map("doctor_id")
+  title           String
+  description     String        @db.Text
+  status          RequestStatus @default(NEW)
+  category        String?       @default("MEDICAL")
+  appointmentDate DateTime?     @map("appointment_date")
+  appointmentTime String?       @map("appointment_time")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt       @map("updated_at")
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User          @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
+  doctor          User?         @relation("DoctorRequests", fields: [doctorId], references: [id], onDelete: SetNull)
 
   @@map("requests")
 }
+
+model Specialty {
+  id      String   @id @default(cuid())
+  nameUA  String   @map("name_ua")
+  nameEN  String   @map("name_en")
+  doctors User[]
+
+  @@map("specialties")
+}
+
+// Doctor model removed as fields merged into User
 
 model Log {
   id        String   @id @default(cuid())

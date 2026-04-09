@@ -59,6 +59,51 @@ async function main() {
     }
   }
 
+  // Specialties
+  console.log('🌱 Створення спеціальностей та лікарів...');
+  const specialtiesData = [
+    { nameUA: 'Терапія', nameEN: 'Therapy' },
+    { nameUA: 'Кардіологія', nameEN: 'Cardiology' },
+    { nameUA: 'Хірургія', nameEN: 'Surgery' },
+    { nameUA: 'Педіатрія', nameEN: 'Pediatrics' },
+    { nameUA: 'Неврологія', nameEN: 'Neurology' },
+  ];
+
+  for (const s of specialtiesData) {
+    const specialty = await prisma.specialty.upsert({
+      where: { id: s.nameEN.toLowerCase() }, // Using EN name as stable ID for seed
+      update: {},
+      create: { 
+        id: s.nameEN.toLowerCase(),
+        nameUA: s.nameUA, 
+        nameEN: s.nameEN 
+      },
+    });
+
+    // Create a doctor for each specialty if they don't exist
+    const doctorCount = await prisma.user.count({ where: { specialtyId: specialty.id, role: 'DOCTOR' } });
+    if (doctorCount === 0) {
+      const email = `doctor.${specialty.id}@perechyn-hospital.gov.ua`;
+      const hashed = await hashPassword('Doctor@12345');
+      await prisma.user.create({
+        data: {
+          email,
+          password: hashed,
+          role: 'DOCTOR',
+          name: s.nameEN === 'Therapy' ? 'Ковач Іван Петрович' : 
+                s.nameEN === 'Cardiology' ? 'Сидоренко Ганна Миколаївна' :
+                s.nameEN === 'Surgery' ? 'Бережний Олексій Вікторович' :
+                s.nameEN === 'Pediatrics' ? 'Ткаченко Марія Іванівна' :
+                'Григоренко Петро Сергійович',
+          photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameUA)}&background=random&size=400`,
+          specialtyId: specialty.id,
+          bioUA: `Досвідчений спеціаліст у галузі ${s.nameUA.toLowerCase()}. Стаж роботи понад 15 років. Автор численних наукових праць.`,
+          bioEN: `Experienced specialist in ${s.nameEN.toLowerCase()}. Over 15 years of practice. Author of numerous scientific papers.`,
+        }
+      });
+    }
+  }
+
   await prisma.log.create({ data: { action: 'SEED_COMPLETED', userId: null } });
   console.log('🎉 Seed завершено!');
 }
