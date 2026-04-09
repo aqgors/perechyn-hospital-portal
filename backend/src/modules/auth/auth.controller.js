@@ -3,6 +3,7 @@ import { prisma } from '../../config/database.js';
 import { hashPassword, comparePassword } from '../../utils/password.js';
 import { registerSchema, loginSchema } from './auth.schema.js';
 import { env } from '../../config/env.js';
+import { sendResetCode } from '../../utils/email.js';
 
 export async function register(request, reply) {
   const parsed = registerSchema.safeParse(request.body);
@@ -86,4 +87,75 @@ export async function refresh(request, reply) {
 export async function logout(request, reply) {
   await prisma.log.create({ data: { action: 'LOGOUT', userId: request.user.id } });
   return reply.send({ message: 'Вихід виконано успішно' });
+}
+
+export async function forgotPassword(request, reply) {
+  try {
+    const { identifier } = request.body;
+    
+    if (!identifier || typeof identifier !== 'string') {
+      return reply.code(400).send({ message: 'Електронна пошта є обов\'язковою' });
+    }
+
+    const email = identifier.trim().toLowerCase();
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    // Always return 200 to avoid email enumeration
+    if (!user) return reply.send({ message: 'Якщо такий email існує, на нього надіслано код' });
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    await prisma.passwordReset.create({ data: { email, code, expiresAt } });
+    await sendResetCode(email, code);
+
+    return reply.send({ message: 'Код відправлено на email' });
+  } catch (error) {
+    console.error('[FORGOT_PASSWORD_ERROR]:', error);
+    return reply.code(500).send({ message: 'Помилка при надсиланні коду' });
+  }
+}
+
+export async function verifyCode(request, reply) {
+  try {
+    const { identifier: email, code } = request.body;
+
+    const record = await prisma.passwordReset.findFirst({
+      where: { email, code, used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!record) {
+      return reply.code(400).send({ message: 'Код невірний або прострочений' });
+    }
+
+    return reply.send({ message: 'Код валідний' });
+  } catch (error) {
+    console.error('[VERIFY_CODE_ERROR]:', error);
+    return reply.code(500).send({ message: 'Помилка верифікації коду' });
+  }
+}
+
+export async function resetPassword(request, reply) {
+  try {
+    const { identifier: email, code, newPassword } = request.body;
+
+    const record = await prisma.passwordReset.findFirst({
+      where: { email, code, used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!record) {
+      return reply.code(400).send({ message: 'Код невірний або прострочений' });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await prisma.user.update({ where: { email }, data: { password: hashedPassword } });
+    await prisma.passwordReset.update({ where: { id: record.id }, data: { used: true } });
+
+    return reply.send({ message: 'Пароль успішно змінено' });
+  } catch (error) {
+    console.error('[RESET_PASSWORD_ERROR]:', error);
+    return reply.code(500).send({ message: 'Помилка при зміні паролю' });
+  }
 }

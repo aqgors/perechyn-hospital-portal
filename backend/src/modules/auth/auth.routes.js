@@ -1,5 +1,5 @@
 // src/modules/auth/auth.routes.js — маршрути авторизації
-import { register, login, refresh, logout } from './auth.controller.js';
+import { register, login, refresh, logout, forgotPassword, verifyCode, resetPassword } from './auth.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 
 export async function authRoutes(fastify) {
@@ -59,4 +59,19 @@ export async function authRoutes(fastify) {
     },
     logout
   );
+
+  fastify.post('/forgot-password', {
+    schema: { tags: ['Auth'], summary: 'Запит коду відновлення паролю' },
+    handler: forgotPassword,
+  });
+
+  fastify.post('/verify-code', {
+    schema: { tags: ['Auth'], summary: 'Верифікація коду підтвердження' },
+    handler: verifyCode,
+  });
+
+  fastify.post('/reset-password', {
+    schema: { tags: ['Auth'], summary: 'Скидання паролю' },
+    handler: resetPassword,
+  });
 }

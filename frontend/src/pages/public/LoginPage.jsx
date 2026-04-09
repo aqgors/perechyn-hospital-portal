@@ -77,6 +77,12 @@ export default function LoginPage() {
               startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ py: 1.5, mt: 1 }}>
               {isLoading ? 'Вхід...' : 'Увійти'}
             </Button>
+
+            <Box sx={{ textAlign: 'right' }}>
+              <Link component={RouterLink} to="/forgot-password" variant="body2" color="text.secondary">
+                Забули пароль?
+              </Link>
+            </Box>
           </Box>
 
           <Divider sx={{ my: 3 }}>
@@ -90,13 +96,6 @@ export default function LoginPage() {
           <Typography variant="body2" textAlign="center" mt={1}>
             <Link component={RouterLink} to="/" color="text.secondary">← Повернутись на головну</Link>
           </Typography>
-
-          {/* Demo credentials */}
-          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2, border: '1px solid', borderColor: 'grey.200' }}>
-            <Typography variant="caption" color="text.secondary" display="block" fontWeight={600} mb={1}>Тестові облікові дані:</Typography>
-            <Typography variant="caption" display="block" color="text.secondary">👑 Admin: admin@perechyn-hospital.gov.ua / Admin@12345</Typography>
-            <Typography variant="caption" display="block" color="text.secondary">👤 User: user@example.com / User@12345</Typography>
-          </Box>
         </Paper>
       </Container>
     </Box>

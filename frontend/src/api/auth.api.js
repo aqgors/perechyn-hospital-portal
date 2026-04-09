@@ -9,4 +9,7 @@ export const authApi = {
   getMe: () => api.get('/users/me'),
   updateMe: (data) => api.put('/users/me', data),
   changePassword: (data) => api.post('/users/me/change-password', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  verifyCode: (data) => api.post('/auth/verify-code', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
 };

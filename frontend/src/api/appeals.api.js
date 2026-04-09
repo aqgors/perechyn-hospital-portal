@@ -5,5 +5,7 @@ export const appealsApi = {
   getAll: (params) => api.get('/appeals', { params }),
   getById: (id) => api.get(`/appeals/${id}`),
   create: (data) => api.post('/appeals', data),
-  update: (id, data) => api.put(`/appeals/${id}`, data),
+  update: (id, data) => api.patch(`/appeals/${id}`, data),
+  delete: (id) => api.delete(`/appeals/${id}`),
+  getOccupiedSlots: (params) => api.get('/appeals/occupied-slots', { params }),
 };

@@ -2,66 +2,289 @@
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Box, TextField, MenuItem, Button, Typography, CircularProgress } from '@mui/material';
-import { Send } from '@mui/icons-material';
+import {
+  Box, TextField, MenuItem, Button, Typography,
+  CircularProgress, Grid, Chip, Paper
+} from '@mui/material';
+import { Send, AccessTime } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useMemo } from 'react';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { uk, enUS } from 'date-fns/locale';
+import { format, isToday, isBefore, parse } from 'date-fns';
+import { specialtiesApi } from '../../api/specialties.api.js';
+import { doctorsApi } from '../../api/doctors.api.js';
+import { appealsApi } from '../../api/appeals.api.js';
 
 const schema = yup.object({
   title: yup.string().min(5, 'Мінімум 5 символів').max(200).required('Тема є обов\'язковою'),
   description: yup.string().min(20, 'Мінімум 20 символів').required('Опис є обов\'язковим'),
-  priority: yup.string().required(),
+  specialtyId: yup.string().required('Спеціальність обов\'язкова'),
+  doctorId: yup.string().nullable(),
+  appointmentDate: yup.date().required('Дата обов\'язкова'),
+  appointmentTime: yup.string().required('Будь ласка, оберіть час прийому'),
 });
 
-const PRIORITIES = [
-  { value: 'LOW', label: 'common.priorityLow', fallback: 'Низький' },
-  { value: 'MEDIUM', label: 'common.priorityMedium', fallback: 'Середній' },
-  { value: 'HIGH', label: 'common.priorityHigh', fallback: 'Високий' },
-  { value: 'URGENT', label: 'common.priorityUrgent', fallback: 'Терміново' },
+const ALL_TIME_SLOTS = [
+  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+  '17:00', '17:30',
 ];
 
-export default function AppealForm({ onSubmit, isLoading }) {
-  const { t } = useTranslation();
-  const { control, handleSubmit, formState: { errors } } = useForm({
+export default function AppealForm({ onSubmit, isLoading, initialData }) {
+  const { t, i18n } = useTranslation();
+  const [specialties, setSpecialties] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
+  const [isSlotsLoading, setIsSlotsLoading] = useState(false);
+
+  const dateLocale = i18n.language === 'en' ? enUS : uk;
+
+  const buildDefaults = (data) => {
+    if (!data) return {
+      title: '', description: '', specialtyId: '', doctorId: null,
+      appointmentDate: new Date(), appointmentTime: '',
+    };
+    return {
+      title: data.title || '',
+      description: data.description || '',
+      specialtyId: data.specialtyId || data.specialty?.id || '',
+      doctorId: data.doctorId || data.doctor?.id || null,
+      appointmentDate: data.appointmentDate ? new Date(data.appointmentDate) : new Date(),
+      appointmentTime: data.appointmentTime || '',
+    };
+  };
+
+  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: { title: '', description: '', priority: 'MEDIUM' },
+    defaultValues: buildDefaults(initialData),
   });
 
+  const selectedSpecialty = watch('specialtyId');
+  const selectedDoctor = watch('doctorId');
+  const selectedDate = watch('appointmentDate');
+  const selectedTime = watch('appointmentTime');
+
+  // Load all specialties + doctors once
+  useEffect(() => {
+    specialtiesApi.getSpecialties().then(res => {
+      const unique = Array.from(new Map(res.data.map(item => [item.id, item])).values());
+      setSpecialties(unique);
+    }).catch(console.error);
+    doctorsApi.getDoctors().then(res => setDoctors(res.data || [])).catch(console.error);
+  }, []);
+
+  // Filter doctors by specialty
+  useEffect(() => {
+    if (selectedSpecialty) {
+      const filtered = doctors.filter(d => d.specialtyId === selectedSpecialty);
+      setFilteredDoctors(filtered);
+      // Reset doctor if it doesn't belong to the new specialty
+      const currentDoc = doctors.find(d => d.id === selectedDoctor);
+      if (currentDoc && currentDoc.specialtyId !== selectedSpecialty) {
+        setValue('doctorId', null);
+      }
+    } else {
+      setFilteredDoctors([]);
+      setValue('doctorId', null);
+    }
+    setValue('appointmentTime', '');
+  }, [selectedSpecialty, doctors, setValue]);
+
+  // Fetch occupied slots when date or doctor/specialty changes
+  useEffect(() => {
+    if (!selectedDate || (!selectedDoctor && !selectedSpecialty)) return;
+    setIsSlotsLoading(true);
+    appealsApi.getOccupiedSlots({
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      doctorId: selectedDoctor || undefined,
+      specialtyId: selectedDoctor ? undefined : selectedSpecialty,
+    }).then(res => {
+      setOccupiedSlots(res.data?.occupied || []);
+    }).catch(() => setOccupiedSlots([]))
+      .finally(() => setIsSlotsLoading(false));
+  }, [selectedDate, selectedDoctor, selectedSpecialty]);
+
+  // Determine if a slot is in the past for today
+  const isSlotPast = (slot) => {
+    if (!selectedDate || !isToday(selectedDate)) return false;
+    const slotTime = parse(slot, 'HH:mm', new Date());
+    return isBefore(slotTime, new Date());
+  };
+
+  const availableSlots = useMemo(() =>
+    ALL_TIME_SLOTS.map(slot => ({
+      slot,
+      occupied: occupiedSlots.includes(slot),
+      past: isSlotPast(slot),
+    })),
+    [occupiedSlots, selectedDate]
+  );
+
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Controller name="title" control={control} render={({ field }) => (
-        <TextField {...field} label={t('newAppealPage.formTitle')} error={!!errors.title} helperText={errors.title?.message} placeholder={t('newAppealPage.placeholderTitle')} />
-      )} />
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr' }, gap: 2 }}>
-        <Controller name="priority" control={control} render={({ field }) => (
-          <TextField {...field} select label={t('newAppealPage.formPriority')} error={!!errors.priority} helperText={errors.priority?.message}>
-            {PRIORITIES.map((p) => <MenuItem key={p.value} value={p.value}>{t(p.label, p.fallback)}</MenuItem>)}
-          </TextField>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={dateLocale}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Title */}
+        <Controller name="title" control={control} render={({ field }) => (
+          <TextField
+            {...field}
+            label={t('newAppealPage.formTitle', 'Тема звернення')}
+            error={!!errors.title}
+            helperText={errors.title?.message}
+            fullWidth
+          />
         )} />
+
+        {/* Specialty + Doctor */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Controller name="specialtyId" control={control} render={({ field }) => (
+              <TextField
+                {...field}
+                select
+                fullWidth
+                label={t('newAppealPage.formSpecialty', 'Спеціальність *')}
+                error={!!errors.specialtyId}
+                helperText={errors.specialtyId?.message}
+                value={field.value || ''}
+              >
+                {specialties.length > 0
+                  ? specialties.map(s => (
+                    <MenuItem key={s.id} value={s.id}>
+                      {i18n.language === 'en' ? s.nameEN : s.nameUA}
+                    </MenuItem>
+                  ))
+                  : <MenuItem disabled>Завантаження...</MenuItem>
+                }
+              </TextField>
+            )} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Controller name="doctorId" control={control} render={({ field }) => (
+              <TextField
+                {...field}
+                select
+                fullWidth
+                label={t('newAppealPage.formDoctor', 'Лікар (необов\'язково)')}
+                error={!!errors.doctorId}
+                helperText={errors.doctorId?.message}
+                disabled={!selectedSpecialty}
+                value={field.value || ''}
+                onChange={e => field.onChange(e.target.value || null)}
+              >
+                {/* Empty option - no doctor */}
+                <MenuItem value="">
+                  <em>— Не вказано (буде призначено) —</em>
+                </MenuItem>
+                {filteredDoctors.length > 0
+                  ? filteredDoctors.map(d => (
+                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                  ))
+                  : <MenuItem disabled>
+                    {selectedSpecialty
+                      ? 'Лікарів не знайдено для цієї спеціальності'
+                      : 'Спочатку оберіть спеціальність'}
+                  </MenuItem>
+                }
+              </TextField>
+            )} />
+          </Grid>
+        </Grid>
+
+        {/* Date + Time slots */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={5}>
+            <Controller name="appointmentDate" control={control} render={({ field }) => (
+              <DatePicker
+                {...field}
+                label={t('appointment.selectDate', 'Дата запису')}
+                minDate={new Date()}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    error: !!errors.appointmentDate,
+                    helperText: errors.appointmentDate?.message
+                  }
+                }}
+                onChange={(val) => {
+                  field.onChange(val);
+                  setValue('appointmentTime', '');
+                }}
+              />
+            )} />
+          </Grid>
+          <Grid item xs={12} sm={7}>
+            <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <AccessTime sx={{ fontSize: 14 }} />
+              {t('appointment.selectTime', 'Оберіть час')}
+            </Typography>
+            <Paper variant="outlined" sx={{ p: 1.5, minHeight: 110, bgcolor: 'action.hover' }}>
+              {isSlotsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 90 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+                  {availableSlots.map(({ slot, occupied, past }) => {
+                    const disabled = occupied || past;
+                    const isSelected = selectedTime === slot;
+                    return (
+                      <Chip
+                        key={slot}
+                        label={slot}
+                        onClick={() => !disabled && setValue('appointmentTime', slot)}
+                        disabled={disabled}
+                        color={isSelected ? 'primary' : 'default'}
+                        variant={isSelected ? 'filled' : 'outlined'}
+                        size="small"
+                        title={occupied ? 'Зайнятий' : past ? 'Час минув' : ''}
+                        sx={{
+                          fontWeight: 700,
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                          fontSize: '0.75rem',
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+              {errors.appointmentTime && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                  {errors.appointmentTime.message}
+                </Typography>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Description */}
+        <Controller name="description" control={control} render={({ field }) => (
+          <TextField
+            {...field}
+            label={t('newAppealPage.formDescription', 'Опис звернення')}
+            multiline
+            rows={4}
+            error={!!errors.description}
+            helperText={errors.description?.message}
+            fullWidth
+          />
+        )} />
+
+        {/* Submit */}
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          disabled={isLoading}
+          startIcon={isLoading ? <CircularProgress size={20} /> : <Send />}
+          sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
+        >
+          {initialData ? t('common.save', 'Зберегти') : t('newAppealPage.submit', 'Подати звернення')}
+        </Button>
       </Box>
-
-      <Controller name="description" control={control} render={({ field }) => (
-        <TextField
-          {...field}
-          label={t('newAppealPage.formDescription')}
-          multiline
-          rows={6}
-          error={!!errors.description}
-          helperText={errors.description?.message || `${field.value.length} / ${t('common.minChars', 'мінімум 20 символів')}`}
-          placeholder={t('newAppealPage.placeholderDescription')}
-        />
-      )} />
-
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        disabled={isLoading}
-        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
-        sx={{ alignSelf: 'flex-start', px: 4 }}
-      >
-        {isLoading ? 'Подається...' : 'Подати звернення'}
-      </Button>
-    </Box>
+    </LocalizationProvider>
   );
 }

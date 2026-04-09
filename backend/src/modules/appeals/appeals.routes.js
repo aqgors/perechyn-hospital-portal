@@ -1,5 +1,5 @@
 // src/modules/appeals/appeals.routes.js
-import { getMyAppeals, createAppeal, getAppealById } from './appeals.controller.js';
+import { getMyAppeals, createAppeal, getAppealById, updateAppeal, deleteAppeal, getOccupiedSlots } from './appeals.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 
 export async function appealsRoutes(fastify) {
@@ -42,5 +42,31 @@ export async function appealsRoutes(fastify) {
   fastify.get('/:id', {
     schema: { tags: ['Appeals'], summary: 'Деталі звернення', security: [{ bearerAuth: [] }] },
     handler: getAppealById,
+  });
+  
+  fastify.patch('/:id', {
+    schema: { tags: ['Appeals'], summary: 'Редагувати звернення', security: [{ bearerAuth: [] }] },
+    handler: updateAppeal,
+  });
+
+  fastify.delete('/:id', {
+    schema: { tags: ['Appeals'], summary: 'Видалити звернення', security: [{ bearerAuth: [] }] },
+    handler: deleteAppeal,
+  });
+
+  fastify.get('/occupied-slots', {
+    schema: {
+      tags: ['Appeals'],
+      summary: 'Зайняті слоти часу',
+      querystring: {
+        type: 'object',
+        properties: {
+          date: { type: 'string' },
+          doctorId: { type: 'string' },
+          specialtyId: { type: 'string' },
+        },
+      },
+    },
+    handler: getOccupiedSlots,
   });
 }

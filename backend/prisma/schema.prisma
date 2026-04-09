@@ -18,6 +18,7 @@ enum RequestStatus {
   NEW
   IN_PROGRESS
   DONE
+  REJECTED
 }
 
 model User {
@@ -48,10 +49,10 @@ model Request {
   id              String        @id @default(cuid())
   userId          String        @map("user_id")
   doctorId        String?       @map("doctor_id")
+  specialtyId     String?       @map("specialty_id")
   title           String
   description     String        @db.Text
   status          RequestStatus @default(NEW)
-  category        String?       @default("MEDICAL")
   appointmentDate DateTime?     @map("appointment_date")
   appointmentTime String?       @map("appointment_time")
   createdAt       DateTime      @default(now()) @map("created_at")
@@ -59,6 +60,7 @@ model Request {
 
   user            User          @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
   doctor          User?         @relation("DoctorRequests", fields: [doctorId], references: [id], onDelete: SetNull)
+  specialty       Specialty?    @relation(fields: [specialtyId], references: [id])
 
   @@map("requests")
 }
@@ -68,6 +70,7 @@ model Specialty {
   nameUA  String   @map("name_ua")
   nameEN  String   @map("name_en")
   doctors User[]
+  requests Request[]
 
   @@map("specialties")
 }
@@ -83,4 +86,15 @@ model Log {
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("logs")
+}
+
+model PasswordReset {
+  id         String   @id @default(cuid())
+  email      String
+  code       String
+  expiresAt  DateTime @map("expires_at")
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("password_resets")
 }

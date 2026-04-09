@@ -7,6 +7,7 @@ import AdminRoute from './AdminRoute.jsx';
 import HomePage from '../pages/public/HomePage.jsx';
 import LoginPage from '../pages/public/LoginPage.jsx';
 import RegisterPage from '../pages/public/RegisterPage.jsx';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage.jsx';
 
 // User pages
 import DashboardPage from '../pages/user/DashboardPage.jsx';
@@ -27,6 +28,7 @@ export default function AppRouter() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Protected */}
       <Route element={<PrivateRoute />}>

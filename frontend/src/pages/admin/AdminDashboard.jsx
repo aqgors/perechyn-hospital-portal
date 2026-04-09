@@ -21,7 +21,11 @@ dayjs.locale('uk');
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    users: { total: 0 },
+    appeals: { total: 0, byStatus: { pending: 0, resolved: 0 } },
+    recentAppeals: []
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,14 +36,12 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  const statCards = stats
-    ? [
-        { label: 'Користувачів', value: stats.users.total, icon: <People />, color: '#1565C0', bg: '#E3F2FD' },
-        { label: 'Всього звернень', value: stats.appeals.total, icon: <Description />, color: '#00897B', bg: '#E0F2F1' },
-        { label: 'Очікують обробки', value: stats.appeals.byStatus.pending, icon: <HourglassEmpty />, color: '#F57C00', bg: '#FFF3E0' },
-        { label: 'Вирішено', value: stats.appeals.byStatus.resolved, icon: <CheckCircle />, color: '#2E7D32', bg: '#E8F5E9' },
-      ]
-    : [];
+  const statCards = [
+    { label: 'Користувачів', value: stats?.users?.total || 0, icon: <People />, color: '#1565C0', bg: '#E3F2FD' },
+    { label: 'Всього звернень', value: stats?.appeals?.total || 0, icon: <Description />, color: '#00897B', bg: '#E0F2F1' },
+    { label: 'Очікують обробки', value: stats?.appeals?.byStatus?.pending || 0, icon: <HourglassEmpty />, color: '#F57C00', bg: '#FFF3E0' },
+    { label: 'Вирішено', value: stats?.appeals?.byStatus?.resolved || 0, icon: <CheckCircle />, color: '#2E7D32', bg: '#E8F5E9' },
+  ];
 
   const adminLinks = [
     { label: 'Управління зверненнями', desc: 'Переглядати та відповідати на звернення', to: '/admin/appeals', icon: <Description />, color: 'primary' },

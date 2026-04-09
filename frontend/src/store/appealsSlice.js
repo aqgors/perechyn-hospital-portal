@@ -12,13 +12,23 @@ export const fetchAppeals = createAsyncThunk('appeals/fetchAll', async (params, 
   }
 });
 
-export const createAppeal = createAsyncThunk('appeals/create', async (appealData, { rejectWithValue }) => {
+export const updateAppeal = createAsyncThunk('appeals/update', async ({ id, data: appealData }, { rejectWithValue }) => {
   try {
-    const { data } = await appealsApi.create(appealData);
-    toast.success('Звернення успішно подано!');
+    const { data } = await appealsApi.update(id, appealData);
+    toast.success('Звернення оновлено!');
     return data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Помилка створення звернення');
+    return rejectWithValue(err.response?.data?.message || 'Помилка оновлення звернення');
+  }
+});
+
+export const deleteAppeal = createAsyncThunk('appeals/delete', async (id, { rejectWithValue }) => {
+  try {
+    await appealsApi.delete(id);
+    toast.success('Звернення видалено');
+    return id;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || 'Помилка видалення звернення');
   }
 });
 
@@ -28,6 +38,16 @@ export const fetchAppealById = createAsyncThunk('appeals/fetchById', async (id, 
     return data;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message);
+  }
+});
+
+export const createAppeal = createAsyncThunk('appeals/create', async (appealData, { rejectWithValue }) => {
+  try {
+    const { data } = await appealsApi.create(appealData);
+    toast.success('Звернення успішно подано!');
+    return data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || 'Помилка створення звернення');
   }
 });
 
@@ -57,6 +77,15 @@ const appealsSlice = createSlice({
       })
       .addCase(createAppeal.fulfilled, (state, { payload }) => {
         state.list.unshift(payload);
+      })
+      .addCase(updateAppeal.fulfilled, (state, { payload }) => {
+        const index = state.list.findIndex(a => a.id === payload.id);
+        if (index !== -1) state.list[index] = payload;
+        if (state.current?.id === payload.id) state.current = payload;
+      })
+      .addCase(deleteAppeal.fulfilled, (state, { payload: id }) => {
+        state.list = state.list.filter(a => a.id !== id);
+        if (state.current?.id === id) state.current = null;
       })
       .addCase(fetchAppealById.fulfilled, (state, { payload }) => {
         state.current = payload;
