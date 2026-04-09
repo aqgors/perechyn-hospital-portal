@@ -1,12 +1,12 @@
 // src/pages/user/ProfilePage.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box, Container, Grid, Paper, Typography, TextField, Button,
-  Avatar, Divider, Alert, Chip, CircularProgress,
+  Avatar, Divider, Alert, Chip, CircularProgress, InputAdornment
 } from '@mui/material';
-import { Person, Lock, Save } from '@mui/icons-material';
+import { Person, Security, Save, PhoneIphone, Mail, VerifiedUser } from '@mui/icons-material';
 import Navbar from '../../components/layout/Navbar.jsx';
 import Footer from '../../components/layout/Footer.jsx';
 import { authApi } from '../../api/auth.api.js';
@@ -19,99 +19,279 @@ const ROLE_COLORS = { ADMIN: 'error', DOCTOR: 'secondary', USER: 'primary' };
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const { user } = useSelector((s) => s.auth);
+  
+  // States
   const [saving, setSaving] = useState(false);
-  const [changingPass, setChangingPass] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+  
+  // Password flow state: 0 = Default, 1 = Entering Code, 2 = Entering New Password
+  const [passStep, setPassStep] = useState(0);
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const profileForm = useForm({ defaultValues: { name: user?.name || '', phone: user?.phone || '' } });
-  const passForm = useForm({ defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' } });
+  const profileForm = useForm({ 
+    defaultValues: { name: '', phone: '' } 
+  });
+
+  // Init form
+  useEffect(() => {
+    if (user) {
+      let phoneStr = user.phone || '';
+      if (phoneStr && !phoneStr.startsWith('+')) {
+        phoneStr = '+' + phoneStr;
+      }
+      profileForm.reset({ name: user.name || '', phone: phoneStr });
+    }
+  }, [user, profileForm]);
+
+  // Enforce +380 logic
+  const handlePhoneChange = (e, field) => {
+    let val = e.target.value.replace(/[^\d+]/g, ''); // keep only numbers and plus
+    if (!val.startsWith('+380') && val.length > 0) {
+      if (val.startsWith('380')) val = '+' + val;
+      else if (val.startsWith('80')) val = '+3' + val;
+      else if (val.startsWith('0')) val = '+38' + val;
+      else if (val.startsWith('+')) val = '+380' + val.substring(1);
+      else val = '+380' + val;
+    }
+    field.onChange(val);
+  };
 
   const onSaveProfile = async (data) => {
     setSaving(true);
     try {
-      await authApi.updateMe(data);
+      await authApi.updateMe({ name: data.name, phone: data.phone });
       await dispatch(fetchMe());
-      toast.success('Профіль оновлено');
+      toast.success('Профіль успішно оновлено');
     } catch { /* handled by interceptor */ }
     setSaving(false);
   };
 
-  const onChangePassword = async (data) => {
-    if (data.newPassword !== data.confirmPassword) {
-      return toast.error('Паролі не співпадають');
-    }
-    setChangingPass(true);
+  // ---- Password flow functions ---- //
+  const handleRequestCode = async () => {
+    setPassLoading(true);
     try {
-      await authApi.changePassword({ currentPassword: data.currentPassword, newPassword: data.newPassword });
-      toast.success('Пароль змінено успішно');
-      passForm.reset();
-    } catch { /* handled by interceptor */ }
-    setChangingPass(false);
+      await authApi.forgotPassword({ identifier: user.email });
+      toast.success('Код підтвердження відправлено на ваш email');
+      setPassStep(1);
+    } catch {
+      toast.error('Не вдалося надіслати код. Спробуйте пізніше.');
+    }
+    setPassLoading(false);
   };
+
+  const handleVerifyCode = async () => {
+    if (code.length !== 6) return toast.error('Введіть 6-значний код');
+    setPassLoading(true);
+    try {
+      await authApi.verifyCode({ identifier: user.email, code });
+      toast.success('Код підтверджено!');
+      setPassStep(2);
+    } catch {
+      toast.error('Невірний або прострочений код');
+    }
+    setPassLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (newPassword.length < 8) return toast.error('Пароль має містити щонайменше 8 символів');
+    if (newPassword !== confirmPassword) return toast.error('Паролі не співпадають');
+    
+    setPassLoading(true);
+    try {
+      await authApi.resetPassword({ identifier: user.email, code, newPassword });
+      toast.success('Пароль успішно змінено!');
+      
+      // Reset flow
+      setPassStep(0);
+      setCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      toast.error('Помилка при зміні паролю');
+    }
+    setPassLoading(false);
+  };
+
+  if (!user) return null;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
-      <Container maxWidth="md" sx={{ py: 4, flexGrow: 1 }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom>Мій профіль</Typography>
+      <Container maxWidth="lg" sx={{ py: 6, flexGrow: 1 }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom sx={{ mb: 4 }}>
+          Особистий кабінет
+        </Typography>
 
-        <Grid container spacing={3}>
-          {/* Profile card */}
+        <Grid container spacing={4}>
+          {/* Left Column - Profile Card */}
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main', fontSize: '2rem', fontWeight: 700, mx: 'auto', mb: 2 }}>
+            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 4, height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider' }}>
+              <Avatar sx={{ width: 100, height: 100, bgcolor: 'primary.main', fontSize: '2.5rem', fontWeight: 800, mx: 'auto', mb: 3, boxShadow: 2 }}>
                 {user?.name?.charAt(0)}
               </Avatar>
-              <Typography variant="h6" fontWeight={600}>{user?.name}</Typography>
-              <Typography variant="body2" color="text.secondary" mb={1}>{user?.email}</Typography>
-              <Chip label={ROLE_LABELS[user?.role]} color={ROLE_COLORS[user?.role]} size="small" sx={{ fontWeight: 600 }} />
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="caption" color="text.secondary">
-                Зареєстровано: {new Date(user?.createdAt).toLocaleDateString('uk-UA')}
+              <Typography variant="h5" fontWeight={700} gutterBottom>{user?.name}</Typography>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2, color: 'text.secondary' }}>
+                <Mail fontSize="small" />
+                <Typography variant="body2">{user?.email}</Typography>
+              </Box>
+
+              <Box sx={{ mt: 1, mb: 3 }}>
+                <Chip icon={<VerifiedUser />} label={ROLE_LABELS[user?.role]} color={ROLE_COLORS[user?.role]} sx={{ fontWeight: 700, px: 1 }} />
+              </Box>
+              
+              <Divider sx={{ my: 'auto' }} />
+              
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
+                Користувач системи з {new Date(user?.createdAt).toLocaleDateString('uk-UA')}
               </Typography>
             </Paper>
           </Grid>
 
+          {/* Right Column - Forms */}
           <Grid item xs={12} md={8}>
-            {/* Edit profile */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Person color="primary" />
-                <Typography variant="h6" fontWeight={600}>Редагувати профіль</Typography>
+            
+            {/* Edit Profile Info */}
+            <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
+                <Person color="primary" sx={{ fontSize: 28 }} />
+                <Typography variant="h6" fontWeight={700}>Персональні дані</Typography>
               </Box>
-              <Box component="form" onSubmit={profileForm.handleSubmit(onSaveProfile)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              
+              <Box component="form" onSubmit={profileForm.handleSubmit(onSaveProfile)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Controller name="name" control={profileForm.control} render={({ field }) => (
-                  <TextField {...field} label="Повне ім'я" />
+                  <TextField 
+                    {...field} 
+                    label="Повне ім'я" 
+                    fullWidth 
+                    variant="outlined" 
+                  />
                 )} />
-                <Controller name="phone" control={profileForm.control} render={({ field }) => (
-                  <TextField {...field} label="Телефон" placeholder="+380501234567" />
-                )} />
-                <Button type="submit" variant="contained" startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <Save />} disabled={saving} sx={{ alignSelf: 'flex-start' }}>
-                  {saving ? 'Збереження...' : 'Зберегти зміни'}
+                
+                <Box>
+                  <Controller name="phone" control={profileForm.control} render={({ field }) => (
+                    <TextField 
+                      {...field} 
+                      label="Мобільний телефон" 
+                      onChange={(e) => handlePhoneChange(e, field)}
+                      placeholder="+380" 
+                      fullWidth 
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><PhoneIphone fontSize="small" /></InputAdornment>,
+                      }}
+                    />
+                  )} />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', ml: 1 }}>
+                    Додайте номер телефону, щоб лікар міг зв’язатися з вами
+                  </Typography>
+                </Box>
+
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  size="large"
+                  startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <Save />} 
+                  disabled={saving} 
+                  sx={{ alignSelf: 'flex-start', mt: 1, px: 4, py: 1.5, borderRadius: 3, fontWeight: 700 }}
+                >
+                  {saving ? 'Збереження...' : 'Зберегти дані'}
                 </Button>
               </Box>
             </Paper>
 
-            {/* Change password */}
-            <Paper sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <Lock color="warning" />
-                <Typography variant="h6" fontWeight={600}>Зміна паролю</Typography>
+            {/* Security Settings (Email verified password reset) */}
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
+                <Security color="warning" sx={{ fontSize: 28 }} />
+                <Typography variant="h6" fontWeight={700}>Безпека та пароль</Typography>
               </Box>
-              <Box component="form" onSubmit={passForm.handleSubmit(onChangePassword)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <Controller name="currentPassword" control={passForm.control} render={({ field }) => (
-                  <TextField {...field} label="Поточний пароль" type="password" />
-                )} />
-                <Controller name="newPassword" control={passForm.control} render={({ field }) => (
-                  <TextField {...field} label="Новий пароль" type="password" helperText="Мін. 8 символів, велика літера та цифра" />
-                )} />
-                <Controller name="confirmPassword" control={passForm.control} render={({ field }) => (
-                  <TextField {...field} label="Підтвердження нового паролю" type="password" />
-                )} />
-                <Button type="submit" variant="outlined" color="warning" startIcon={changingPass ? <CircularProgress size={18} /> : <Lock />} disabled={changingPass} sx={{ alignSelf: 'flex-start' }}>
-                  {changingPass ? 'Збереження...' : 'Змінити пароль'}
-                </Button>
+
+              <Box sx={{ maxWidth: 500 }}>
+                {passStep === 0 && (
+                  <Box>
+                     <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+                      Для зміни пароля ми надішлемо код підтвердження на вашу електронну пошту <b>{user.email}</b>.
+                    </Alert>
+                    <Button 
+                      onClick={handleRequestCode} 
+                      variant="outlined" 
+                      color="warning" 
+                      size="large"
+                      startIcon={passLoading ? <CircularProgress size={20} /> : <Security />} 
+                      disabled={passLoading} 
+                      sx={{ borderRadius: 3, fontWeight: 700, px: 4 }}
+                    >
+                      {passLoading ? 'Надсилання...' : 'Змінити пароль безпечно'}
+                    </Button>
+                  </Box>
+                )}
+
+                {passStep === 1 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Alert severity="success" sx={{ borderRadius: 2 }}>
+                      6-значний код відправлено на <b>{user.email}</b>
+                    </Alert>
+                    <TextField 
+                      label="Код підтвердження" 
+                      value={code} 
+                      onChange={e => setCode(e.target.value)}
+                      inputProps={{ maxLength: 6 }}
+                      fullWidth
+                    />
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>Скасувати</Button>
+                      <Button 
+                        onClick={handleVerifyCode} 
+                        variant="contained" 
+                        color="warning" 
+                        disabled={passLoading || code.length !== 6}
+                        sx={{ fontWeight: 700, borderRadius: 3, px: 4 }}
+                      >
+                        {passLoading ? <CircularProgress size={20} /> : 'Перевірити код'}
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+
+                {passStep === 2 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Alert severity="info" sx={{ borderRadius: 2 }}>Код підтверджено. Придумайте новий надійний пароль.</Alert>
+                    <TextField 
+                      label="Новий пароль" 
+                      type="password" 
+                      value={newPassword} 
+                      onChange={e => setNewPassword(e.target.value)}
+                      helperText="Мінімум 8 символів"
+                      fullWidth
+                    />
+                    <TextField 
+                      label="Підтвердження нового паролю" 
+                      type="password" 
+                      value={confirmPassword} 
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      error={confirmPassword.length > 0 && newPassword !== confirmPassword}
+                      helperText={confirmPassword.length > 0 && newPassword !== confirmPassword ? "Паролі не співпадають" : ""}
+                      fullWidth
+                    />
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>Скасувати</Button>
+                      <Button 
+                        onClick={handleResetPassword} 
+                        variant="contained" 
+                        color="success" 
+                        disabled={passLoading || newPassword.length < 8 || newPassword !== confirmPassword}
+                        sx={{ fontWeight: 700, borderRadius: 3, px: 4 }}
+                      >
+                         {passLoading ? <CircularProgress size={20} /> : 'Зберегти пароль'}
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
               </Box>
             </Paper>
+
           </Grid>
         </Grid>
       </Container>

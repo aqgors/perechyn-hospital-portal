@@ -15,7 +15,7 @@ export async function appealsRoutes(fastify) {
         properties: {
           page: { type: 'integer', default: 1 },
           limit: { type: 'integer', default: 10 },
-          status: { type: 'string', enum: ['NEW', 'IN_PROGRESS', 'DONE'] },
+          status: { type: 'string', enum: ['NEW', 'IN_PROGRESS', 'DONE', 'REJECTED'] },
         },
       },
     },

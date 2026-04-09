@@ -6,7 +6,6 @@ const getDesignTokens = (mode) => ({
     mode,
     ...(mode === 'light'
       ? {
-          // Palette for light mode
           primary: {
             main: '#1565C0',
             light: '#42a5f5',
@@ -29,25 +28,24 @@ const getDesignTokens = (mode) => ({
           },
         }
       : {
-          // Palette for dark mode
           primary: {
-            main: '#90CAF9',
-            light: '#E3F2FD',
-            dark: '#42A5F5',
-            contrastText: 'rgba(0, 0, 0, 0.87)',
+            main: '#3B82F6', // Softer, deeper blue than #90CAF9
+            light: '#60A5FA',
+            dark: '#2563EB',
+            contrastText: '#fff',
           },
           secondary: {
-            main: '#4DB6AC',
-            light: '#B2DFDB',
-            dark: '#00796B',
-            contrastText: 'rgba(0, 0, 0, 0.87)',
+            main: '#14B8A6', // Muting the teal to be more balanced
+            light: '#2DD4BF',
+            dark: '#0D9488',
+            contrastText: '#fff',
           },
           background: {
             default: '#0F172A',
             paper: '#1E293B',
           },
           text: {
-            primary: '#F1F5F9',
+            primary: '#F8FAFC',
             secondary: '#94A3B8',
           },
         }),
@@ -62,7 +60,7 @@ const getDesignTokens = (mode) => ({
     h6: { fontSize: '1rem', fontWeight: 600, lineHeight: 1.4 },
     body1: { fontSize: '1rem', lineHeight: 1.6 },
     body2: { fontSize: '0.875rem', lineHeight: 1.6 },
-    button: { fontWeight: 600, textTransform: 'none', letterSpacing: '0.01em' },
+    button: { fontWeight: 700, textTransform: 'none', letterSpacing: '0.02em' },
   },
   shape: { borderRadius: 16 },
   components: {
@@ -75,13 +73,13 @@ const getDesignTokens = (mode) => ({
           '&:hover': { 
             boxShadow: mode === 'light' 
               ? '0px 4px 12px rgba(21, 101, 192, 0.2)' 
-              : '0px 4px 12px rgba(144, 202, 249, 0.2)',
+              : '0px 4px 12px rgba(59, 130, 246, 0.25)',
           },
         },
         containedPrimary: {
           background: mode === 'light'
             ? 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)'
-            : 'linear-gradient(135deg, #90CAF9 0%, #42A5F5 100%)',
+            : '#3B82F6', // Flat color in dark mode to prevent neon glow
         },
       },
     },
@@ -91,10 +89,10 @@ const getDesignTokens = (mode) => ({
           borderRadius: 20,
           boxShadow: mode === 'light'
             ? '0px 2px 12px rgba(0,0,0,0.06)'
-            : '0px 4px 20px rgba(0,0,0,0.25)',
+            : '0px 2px 10px rgba(0,0,0,0.4)',
           border: mode === 'light'
             ? '1px solid rgba(226, 232, 240, 0.8)'
-            : '1px solid rgba(51, 65, 85, 0.5)',
+            : '1px solid rgba(51, 65, 85, 0.8)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       },
@@ -111,10 +109,10 @@ const getDesignTokens = (mode) => ({
         root: {
           background: mode === 'light'
             ? 'linear-gradient(135deg, #0D47A1 0%, #1565C0 100%)'
-            : 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+            : '#0F172A', // Seamless with background in dark mode
           boxShadow: mode === 'light'
             ? '0px 2px 20px rgba(13, 71, 161, 0.2)'
-            : '0px 4px 20px rgba(0,0,0,0.4)',
+            : 'border-bottom: 1px solid rgba(51, 65, 85, 0.8)',
         },
       },
     },

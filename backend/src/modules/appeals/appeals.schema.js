@@ -17,5 +17,5 @@ export const updateAppealSchema = z.object({
   doctorId: z.string().nullable().optional(),
   appointmentDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
   appointmentTime: z.string().optional(),
-  status: z.enum(['NEW', 'IN_PROGRESS', 'DONE']).optional(),
+  status: z.enum(['NEW', 'IN_PROGRESS', 'DONE', 'REJECTED']).optional(),
 });
