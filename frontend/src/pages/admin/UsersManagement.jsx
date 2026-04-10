@@ -4,12 +4,13 @@ import {
   Box, Container, Typography, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Button, Dialog, DialogTitle,
   DialogContent, DialogActions, MenuItem, TextField, Pagination, Avatar,
-  InputAdornment, IconButton, Select, FormControl,
+  InputAdornment, IconButton, Select, FormControl, Alert,
 } from '@mui/material';
 import { Edit, Search, Delete } from '@mui/icons-material';
 import Navbar from '../../components/layout/Navbar.jsx';
 import Footer from '../../components/layout/Footer.jsx';
 import { adminApi } from '../../api/admin.api.js';
+import specialtiesApi from '../../api/specialties.api.js';
 import { RoleChip } from '../../components/common/StatusChip.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import toast from 'react-hot-toast';
@@ -24,7 +25,17 @@ export default function UsersManagement() {
   const [selected, setSelected] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState('USER');
+  const [specialtyId, setSpecialtyId] = useState('');
+  const [bioUA, setBioUA] = useState('');
+  const [bioEN, setBioEN] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [specialties, setSpecialties] = useState([]);
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    specialtiesApi.getAll().then(({ data }) => setSpecialties(data.data)).catch(() => { });
+  }, []);
 
   const load = () => {
     setLoading(true);
@@ -35,12 +46,33 @@ export default function UsersManagement() {
 
   useEffect(() => { load(); }, [page]);
 
-  const openEdit = (user) => { setSelected(user); setNewRole(user.role); setDialogOpen(true); };
+  const openEdit = (user) => {
+    setSelected(user);
+    setNewRole(user.role);
+    setSpecialtyId(user.specialtyId || '');
+    setBioUA(user.bioUA || '');
+    setBioEN(user.bioEN || '');
+    setPhotoUrl(user.photoUrl || '');
+    setFormError('');
+    setDialogOpen(true);
+  };
 
   const handleSave = async () => {
+    // Validate: DOCTOR requires specialtyId
+    if (newRole === 'DOCTOR' && !specialtyId) {
+      setFormError('Для ролі Лікар обов\'язково виберіть спеціальність лікаря');
+      return;
+    }
     setSaving(true);
     try {
-      await adminApi.updateUser(selected.id, { role: newRole });
+      const updateData = { role: newRole };
+      if (newRole === 'DOCTOR') {
+        updateData.specialtyId = specialtyId || null;
+        updateData.bioUA = bioUA;
+        updateData.bioEN = bioEN;
+        updateData.photoUrl = photoUrl;
+      }
+      await adminApi.updateUser(selected.id, updateData);
       toast.success('Роль оновлено');
       setDialogOpen(false);
       load();
@@ -53,7 +85,7 @@ export default function UsersManagement() {
       await adminApi.deleteUser(id);
       toast.success('Користувача видалено');
       load();
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -79,7 +111,7 @@ export default function UsersManagement() {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50' }}>
                     <TableCell sx={{ fontWeight: 700 }}>Користувач</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Роль</TableCell>
@@ -130,10 +162,32 @@ export default function UsersManagement() {
           {selected && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="body2" color="text.secondary">{selected.name} · {selected.email}</Typography>
-              <TextField select label="Роль" value={newRole} onChange={(e) => setNewRole(e.target.value)} fullWidth>
+              <TextField select label="Роль" value={newRole} onChange={(e) => { setNewRole(e.target.value); setFormError(''); }} fullWidth>
                 <MenuItem value="USER">Пацієнт (USER)</MenuItem>
                 <MenuItem value="ADMIN">Адміністратор (ADMIN)</MenuItem>
+                <MenuItem value="DOCTOR">Лікар (DOCTOR)</MenuItem>
+                <MenuItem value="REGISTRAR">Реєстратура (REGISTRAR)</MenuItem>
               </TextField>
+
+              {newRole === 'DOCTOR' && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, p: 2, bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="primary">Профіль лікаря (публічний каталог)</Typography>
+                  <TextField
+                    select
+                    label="Спеціальність *"
+                    value={specialtyId}
+                    onChange={(e) => { setSpecialtyId(e.target.value); setFormError(''); }}
+                    fullWidth
+                    error={Boolean(formError && !specialtyId)}
+                    helperText={formError && !specialtyId ? formError : ''}
+                  >
+                    {specialties.map(s => <MenuItem key={s.id} value={s.id}>{s.nameUA}</MenuItem>)}
+                  </TextField>
+                  <TextField label="Посилання на фото (Photo URL)" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth />
+                  <TextField label="Біографія (UKR)" multiline rows={3} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />
+                  <TextField label="Біографія (ENG)" multiline rows={3} value={bioEN} onChange={(e) => setBioEN(e.target.value)} fullWidth />
+                </Box>
+              )}
             </Box>
           )}
         </DialogContent>

@@ -8,7 +8,7 @@ import { CalendarMonth, Star } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-export default function DoctorCard({ doctor, onBook }) {
+export default function DoctorCard({ doctor, onBook, onEdit, onDelete }) {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -101,12 +101,8 @@ export default function DoctorCard({ doctor, onBook }) {
           color="text.secondary" 
           sx={{ 
             mb: 3, 
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
             lineHeight: 1.6,
-            height: '4.8em'
+            flexGrow: 1
           }}
         >
           {bio}
@@ -114,27 +110,50 @@ export default function DoctorCard({ doctor, onBook }) {
 
         <Box sx={{ mt: 'auto' }}>
           <Divider sx={{ mb: 2, opacity: 0.1 }} />
-          <Button 
-            variant="contained" 
-            fullWidth 
-            startIcon={<CalendarMonth />}
-            onClick={handleBookClick}
-            sx={{ 
-              borderRadius: 3, 
-              py: 1.2,
-              fontWeight: 700,
-              textTransform: 'none',
-              fontSize: '1rem',
-              boxShadow: theme.shadows[4],
-              '&:hover': {
-                boxShadow: theme.shadows[8],
-                transform: 'translateY(-2px)'
-              },
-              transition: 'all 0.2s'
-            }}
-          >
-            {t('doctorCatalog.bookButton')}
-          </Button>
+          {onEdit && onDelete ? (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                fullWidth 
+                onClick={() => onEdit(doctor)}
+                sx={{ borderRadius: 2, fontWeight: 700 }}
+              >
+                Редагувати
+              </Button>
+              <Button 
+                variant="outlined" 
+                color="error" 
+                fullWidth 
+                onClick={() => onDelete(doctor.id)}
+                sx={{ borderRadius: 2, fontWeight: 700 }}
+              >
+                Видалити
+              </Button>
+            </Box>
+          ) : (
+            <Button 
+              variant="contained" 
+              fullWidth 
+              startIcon={<CalendarMonth />}
+              onClick={handleBookClick}
+              sx={{ 
+                borderRadius: 3, 
+                py: 1.2,
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '1rem',
+                boxShadow: theme.shadows[4],
+                '&:hover': {
+                  boxShadow: theme.shadows[8],
+                  transform: 'translateY(-2px)'
+                },
+                transition: 'all 0.2s'
+              }}
+            >
+              {t('doctorCatalog.bookButton')}
+            </Button>
+          )}
         </Box>
       </CardContent>
     </Card>

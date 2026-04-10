@@ -31,23 +31,49 @@ export async function getAllUsers(request, reply) {
 
 export async function updateUser(request, reply) {
   const { id } = request.params;
-  const { role } = request.body;
+  const { role, specialtyId, bioUA, bioEN, photoUrl } = request.body;
 
-  if (!['USER', 'ADMIN'].includes(role)) {
-    return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: 'Роль повинна бути USER або ADMIN' });
+  const VALID_ROLES = ['USER', 'ADMIN', 'DOCTOR', 'REGISTRAR'];
+  if (role && !VALID_ROLES.includes(role)) {
+    return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: `Роль повинна бути однією з: ${VALID_ROLES.join(', ')}` });
   }
 
-  if (id === request.user.id) {
+  if (id === request.user.id && role && role !== request.user.role) {
     return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: 'Не можна змінити власну роль' });
+  }
+
+  // Validate DOCTOR requires specialtyId
+  const targetRole = role || (await prisma.user.findUnique({ where: { id }, select: { role: true } }))?.role;
+  if (targetRole === 'DOCTOR' && role === 'DOCTOR' && !specialtyId) {
+    return reply.code(400).send({
+      statusCode: 400,
+      error: 'Bad Request',
+      message: 'При призначенні ролі DOCTOR обов\'язково вкажіть спеціальність лікаря',
+    });
+  }
+
+  const dataToUpdate = {};
+  if (role) dataToUpdate.role = role;
+  if (specialtyId !== undefined) dataToUpdate.specialtyId = specialtyId || null;
+  if (bioUA !== undefined) dataToUpdate.bioUA = bioUA;
+  if (bioEN !== undefined) dataToUpdate.bioEN = bioEN;
+  if (photoUrl !== undefined) dataToUpdate.photoUrl = photoUrl;
+
+  // When demoting to non-doctor roles, clear doctor-specific fields
+  if (role && role !== 'DOCTOR') {
+    dataToUpdate.specialtyId = null;
+    dataToUpdate.bioUA = null;
+    dataToUpdate.bioEN = null;
+    dataToUpdate.photoUrl = null;
   }
 
   const user = await prisma.user.update({
     where: { id },
-    data: { role },
-    select: { id: true, name: true, email: true, role: true },
+    data: dataToUpdate,
+    select: { id: true, name: true, email: true, role: true, specialtyId: true, bioUA: true },
   });
 
-  await prisma.log.create({ data: { action: `UPDATE_USER_ROLE:${role}`, userId: request.user.id } });
+  await prisma.log.create({ data: { action: `UPDATE_USER:${user.id}`, userId: request.user.id } });
   return reply.send(user);
 }
 
@@ -61,50 +87,6 @@ export async function deleteUser(request, reply) {
   return reply.send({ message: 'Користувача видалено' });
 }
 
-// ── Звернення ─────────────────────────────────────────────────────────────────
-
-export async function getAllAppeals(request, reply) {
-  const { page = 1, limit = 20, status, search } = request.query;
-  const skip = (Number(page) - 1) * Number(limit);
-
-  const where = {
-    ...(status && { status }),
-    ...(search && {
-      OR: [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ],
-    }),
-  };
-
-  const [data, total] = await Promise.all([
-    prisma.request.findMany({ where, include: APPEAL_INCLUDE, orderBy: { createdAt: 'desc' }, skip, take: Number(limit) }),
-    prisma.request.count({ where }),
-  ]);
-
-  return reply.send({ data, meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } });
-}
-
-export async function updateAppealStatus(request, reply) {
-  const { id } = request.params;
-  const { status } = request.body;
-
-  if (!['NEW', 'IN_PROGRESS', 'DONE'].includes(status)) {
-    return reply.code(400).send({ statusCode: 400, error: 'Bad Request', message: 'Статус повинен бути NEW, IN_PROGRESS або DONE' });
-  }
-
-  const appeal = await prisma.request.findUnique({ where: { id } });
-  if (!appeal) return reply.code(404).send({ statusCode: 404, error: 'Not Found', message: 'Звернення не знайдено' });
-
-  const updated = await prisma.request.update({
-    where: { id },
-    data: { status },
-    include: APPEAL_INCLUDE,
-  });
-
-  await prisma.log.create({ data: { action: `STATUS_CHANGE:${status}`, userId: request.user.id } });
-  return reply.send(updated);
-}
 
 // ── Статистика ────────────────────────────────────────────────────────────────
 

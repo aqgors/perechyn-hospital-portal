@@ -12,6 +12,15 @@ export const fetchAppeals = createAsyncThunk('appeals/fetchAll', async (params, 
   }
 });
 
+export const fetchUnreadCount = createAsyncThunk('appeals/fetchUnreadCount', async (_, { rejectWithValue }) => {
+  try {
+    const { data } = await appealsApi.getUnreadCount();
+    return data.count;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message);
+  }
+});
+
 export const updateAppeal = createAsyncThunk('appeals/update', async ({ id, data: appealData }, { rejectWithValue }) => {
   try {
     const { data } = await appealsApi.update(id, appealData);
@@ -51,6 +60,15 @@ export const createAppeal = createAsyncThunk('appeals/create', async (appealData
   }
 });
 
+export const markMessagesAsRead = createAsyncThunk('appeals/markRead', async (id, { rejectWithValue }) => {
+  try {
+    await appealsApi.markAsRead(id);
+    return id;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message);
+  }
+});
+
 const appealsSlice = createSlice({
   name: 'appeals',
   initialState: {
@@ -59,6 +77,7 @@ const appealsSlice = createSlice({
     current: null,
     isLoading: false,
     error: null,
+    unreadCount: 0,
   },
   reducers: {
     clearCurrent(state) { state.current = null; },
@@ -89,6 +108,27 @@ const appealsSlice = createSlice({
       })
       .addCase(fetchAppealById.fulfilled, (state, { payload }) => {
         state.current = payload;
+      })
+      .addCase(markMessagesAsRead.fulfilled, (state, { payload: id }) => {
+        let readCount = 0;
+        const index = state.list.findIndex(a => a.id === id);
+        if (index !== -1 && state.list[index].messages) {
+          state.list[index].messages.forEach(m => {
+            if (!m.isRead) {
+              m.isRead = true;
+              readCount++;
+            }
+          });
+        }
+        if (state.current?.id === id && state.current.messages) {
+          state.current.messages.forEach(m => {
+            if (!m.isRead) m.isRead = true;
+          });
+        }
+        state.unreadCount = Math.max(0, state.unreadCount - readCount);
+      })
+      .addCase(fetchUnreadCount.fulfilled, (state, action) => {
+        state.unreadCount = action.payload;
       });
   },
 });

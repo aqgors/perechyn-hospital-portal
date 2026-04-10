@@ -1,5 +1,5 @@
 // src/modules/appeals/appeals.routes.js
-import { getMyAppeals, createAppeal, getAppealById, updateAppeal, deleteAppeal, getOccupiedSlots } from './appeals.controller.js';
+import { getMyAppeals, createAppeal, getAppealById, updateAppeal, deleteAppeal, getOccupiedSlots, getUnreadCount, markAsRead } from './appeals.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 
 export async function appealsRoutes(fastify) {
@@ -39,9 +39,19 @@ export async function appealsRoutes(fastify) {
     handler: createAppeal,
   });
 
+  fastify.get('/unread-count', {
+    schema: { tags: ['Appeals'], summary: 'Кількість непрочитаних повідомлень', security: [{ bearerAuth: [] }] },
+    handler: getUnreadCount,
+  });
+
   fastify.get('/:id', {
     schema: { tags: ['Appeals'], summary: 'Деталі звернення', security: [{ bearerAuth: [] }] },
     handler: getAppealById,
+  });
+
+  fastify.post('/:id/read-messages', {
+    schema: { tags: ['Appeals'], summary: 'Позначити повідомлення прочитаними', security: [{ bearerAuth: [] }] },
+    handler: markAsRead,
   });
   
   fastify.patch('/:id', {

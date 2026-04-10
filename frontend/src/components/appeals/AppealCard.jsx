@@ -1,7 +1,9 @@
 // src/components/appeals/AppealCard.jsx
-import { Card, CardContent, CardActions, Typography, Box, Button, Divider } from '@mui/material';
+import { Card, CardContent, CardActions, Typography, Box, Button, Divider, Chip } from '@mui/material';
 import { AccessTime, Edit, Delete, CalendarMonth, LocalHospital, Schedule } from '@mui/icons-material';
 import { StatusChip } from '../common/StatusChip.jsx';
+import { useDispatch } from 'react-redux';
+import { markMessagesAsRead } from '../../store/appealsSlice.js';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
@@ -16,9 +18,11 @@ dayjs.locale('uk');
  */
 export default function AppealCard({ appeal, onEdit, onDelete }) {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
 
   const canEdit   = appeal.status === 'NEW';
   const canDelete = appeal.status === 'NEW' || appeal.status === 'DONE' || appeal.status === 'REJECTED';
+  const unreadCount = appeal.messages?.filter(m => !m.isRead).length || 0;
 
   return (
     <Card sx={{
@@ -75,6 +79,47 @@ export default function AppealCard({ appeal, onEdit, onDelete }) {
               <Typography variant="body2" fontWeight={700}>
                 {appeal.specialty?.nameUA}
               </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {/* Messages */}
+        {(appeal.doctorComment || (appeal.messages && appeal.messages.length > 0)) && (
+          <Box sx={{ p: 1.5, bgcolor: 'rgba(56, 189, 248, 0.1)', borderLeft: '4px solid #38BDF8', borderRadius: 1, mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+              <Typography variant="caption" color="primary.dark" fontWeight={700} display="block">
+                Повідомлення від лікаря:
+              </Typography>
+              {unreadCount > 0 && (
+                <Chip 
+                  size="small" 
+                  color="error" 
+                  label={`${unreadCount} ${unreadCount === 1 ? 'нове' : 'нових'}`} 
+                  onClick={() => dispatch(markMessagesAsRead(appeal.id))}
+                  sx={{ cursor: 'pointer', fontWeight: 'bold' }} 
+                />
+              )}
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {appeal.messages?.map((msg) => (
+                <Box key={msg.id} sx={{ p: 1, bgcolor: msg.isRead ? 'transparent' : 'rgba(255,255,255,0.7)', borderRadius: 1 }}>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    {dayjs(msg.createdAt).format('DD.MM.YY, HH:mm')} {msg.sender?.name ? `- ${msg.sender.name}` : ''}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', fontWeight: 500, color: 'text.primary', whiteSpace: 'pre-wrap' }}>
+                    {msg.text}
+                  </Typography>
+                </Box>
+              ))}
+              
+              {appeal.doctorComment && (!appeal.messages || appeal.messages.length === 0) && (
+                <Box sx={{ p: 1 }}>
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', fontWeight: 500, color: 'text.primary', whiteSpace: 'pre-wrap' }}>
+                    {appeal.doctorComment}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Box>
         )}

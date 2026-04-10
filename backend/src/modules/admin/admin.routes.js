@@ -1,5 +1,5 @@
 // src/modules/admin/admin.routes.js
-import { getAllUsers, updateUser, deleteUser, getAllAppeals, updateAppealStatus, getStats } from './admin.controller.js';
+import { getAllUsers, updateUser, deleteUser, getStats } from './admin.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 
@@ -22,7 +22,17 @@ export async function adminRoutes(fastify) {
       tags: ['Admin'],
       summary: 'Змінити роль користувача',
       security: [{ bearerAuth: [] }],
-      body: { type: 'object', required: ['role'], properties: { role: { type: 'string', enum: ['USER', 'ADMIN'] } } },
+      body: { 
+        type: 'object', 
+        required: ['role'], 
+        properties: { 
+          role: { type: 'string', enum: ['USER', 'ADMIN', 'DOCTOR', 'REGISTRAR'] },
+          specialtyId: { type: ['string', 'null'] },
+          bioUA: { type: ['string', 'null'] },
+          bioEN: { type: ['string', 'null'] },
+          photoUrl: { type: ['string', 'null'] },
+        } 
+      },
     },
     handler: updateUser,
   });
@@ -32,34 +42,6 @@ export async function adminRoutes(fastify) {
     handler: deleteUser,
   });
 
-  // Appeals (Requests)
-  fastify.get('/appeals', {
-    schema: {
-      tags: ['Admin'],
-      summary: 'Всі звернення',
-      security: [{ bearerAuth: [] }],
-      querystring: {
-        type: 'object',
-        properties: {
-          page: { type: 'integer', default: 1 },
-          limit: { type: 'integer', default: 20 },
-          status: { type: 'string', enum: ['NEW', 'IN_PROGRESS', 'DONE'] },
-          search: { type: 'string' },
-        },
-      },
-    },
-    handler: getAllAppeals,
-  });
-
-  fastify.put('/appeals/:id/status', {
-    schema: {
-      tags: ['Admin'],
-      summary: 'Змінити статус звернення',
-      security: [{ bearerAuth: [] }],
-      body: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['NEW', 'IN_PROGRESS', 'DONE'] } } },
-    },
-    handler: updateAppealStatus,
-  });
 
   // Stats
   fastify.get('/stats', {

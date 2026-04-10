@@ -9,7 +9,7 @@ export const specialtiesController = {
       const specialties = await prisma.specialty.findMany({
         orderBy: { nameUA: 'asc' }
       });
-      return specialties;
+      return { data: specialties };
     } catch (error) {
       request.log.error(error);
       return reply.status(500).send({ message: 'Internal Server Error' });
@@ -37,12 +37,58 @@ export const specialtiesController = {
 
   create: async (request, reply) => {
     const { nameUA, nameEN } = request.body;
+    if (!nameUA || !nameEN) {
+      return reply.status(400).send({ message: 'Назви спеціалізації (UA та EN) є обов\'язковими' });
+    }
     try {
       const specialty = await prisma.specialty.create({
         data: { nameUA, nameEN }
       });
+      return reply.status(201).send(specialty);
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(500).send({ message: 'Internal Server Error' });
+    }
+  },
+
+  update: async (request, reply) => {
+    const { id } = request.params;
+    const { nameUA, nameEN } = request.body;
+    try {
+      const specialty = await prisma.specialty.update({
+        where: { id },
+        data: { 
+          ...(nameUA && { nameUA }), 
+          ...(nameEN && { nameEN }) 
+        }
+      });
       return specialty;
     } catch (error) {
+      if (error.code === 'P2025') {
+        return reply.status(404).send({ message: 'Спеціальність не знайдена' });
+      }
+      request.log.error(error);
+      return reply.status(500).send({ message: 'Internal Server Error' });
+    }
+  },
+
+  remove: async (request, reply) => {
+    const { id } = request.params;
+    try {
+      // Check if any doctors or requests are linked to this specialty
+      const doctorCount = await prisma.user.count({ where: { specialtyId: id } });
+      if (doctorCount > 0) {
+        return reply.status(409).send({ 
+          message: `Неможливо видалити: ${doctorCount} лікар(ів) прив'язані до цієї спеціальності. Спочатку перепризначте їх.` 
+        });
+      }
+
+      await prisma.specialty.delete({ where: { id } });
+      return reply.send({ message: 'Спеціальність видалено' });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        return reply.status(404).send({ message: 'Спеціальність не знайдена' });
+      }
       request.log.error(error);
       return reply.status(500).send({ message: 'Internal Server Error' });
     }

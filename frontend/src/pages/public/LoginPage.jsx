@@ -18,13 +18,18 @@ const schema = yup.object({
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useSelector((s) => s.auth);
+  const { isLoading, error, isAuthenticated, user } = useSelector((s) => s.auth);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard');
+    if (isAuthenticated && user) {
+      if (user.role === 'DOCTOR') navigate('/doctor/appeals');
+      else if (user.role === 'REGISTRAR') navigate('/registrar/appeals');
+      else if (user.role === 'ADMIN') navigate('/admin/stats');
+      else navigate('/dashboard');
+    }
     return () => dispatch(clearError());
-  }, [isAuthenticated, navigate, dispatch]);
+  }, [isAuthenticated, user, navigate, dispatch]);
 
   const { control, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),

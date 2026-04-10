@@ -31,9 +31,17 @@ export async function updateMe(request, reply) {
     return reply.code(400).send({ statusCode: 400, error: 'Validation Error', message: parsed.error.errors[0].message });
   }
 
+  const updateData = { ...parsed.data };
+
+  // DOCTOR and ADMIN roles should not have a phone number
+  const ROLES_WITHOUT_PHONE = ['DOCTOR', 'ADMIN', 'REGISTRAR'];
+  if (ROLES_WITHOUT_PHONE.includes(request.user.role)) {
+    delete updateData.phone;
+  }
+
   const user = await prisma.user.update({
     where: { id: request.user.id },
-    data: parsed.data,
+    data: updateData,
     select: { 
       id: true, 
       name: true, 

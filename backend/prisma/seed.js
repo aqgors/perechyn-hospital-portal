@@ -26,7 +26,23 @@ async function main() {
     console.log(`⚠️  Admin вже існує: ${adminEmail}`);
   }
 
-  // Test user
+  // Registrar
+  const registrarEmail = 'registry@perechyn-hospital.gov.ua';
+  const existingRegistrar = await prisma.user.findUnique({ where: { email: registrarEmail } });
+  if (!existingRegistrar) {
+    const hashed = await hashPassword('Registry@12345');
+    await prisma.user.create({
+      data: {
+        email: registrarEmail,
+        password: hashed,
+        name: 'Реєстратура Системи',
+        role: 'REGISTRAR',
+      },
+    });
+    console.log(`✅ Registrar: ${registrarEmail} / Registry@12345`);
+  }
+
+  // Test users
   const userEmail = 'user@example.com';
   const existingUser = await prisma.user.findUnique({ where: { email: userEmail } });
 
@@ -55,7 +71,37 @@ async function main() {
           { userId: testUser.id, title: 'Пропозиція — онлайн запис', description: 'Пропоную впровадити онлайн-запис до лікарів через сайт лікарні.', status: 'DONE' },
         ],
       });
-      console.log('✅ Тестові звернення створені');
+      console.log('✅ Тестові звернення першого пацієнта створені');
+    }
+  }
+
+  // Test user 2
+  const user2Email = 'patient2@example.com';
+  const existingUser2 = await prisma.user.findUnique({ where: { email: user2Email } });
+  let testUser2 = existingUser2;
+  if (!existingUser2) {
+    const hashed = await hashPassword('Patient@12345');
+    testUser2 = await prisma.user.create({
+      data: {
+        email: user2Email,
+        password: hashed,
+        name: 'Іванов Іван Іванович',
+        role: 'USER',
+      },
+    });
+    console.log(`✅ User 2: ${user2Email} / Patient@12345`);
+  }
+
+  if (testUser2) {
+    const count2 = await prisma.request.count({ where: { userId: testUser2.id } });
+    if (count2 === 0) {
+      await prisma.request.createMany({
+        data: [
+          { userId: testUser2.id, title: 'Біль у спині', description: 'Турбують сильні болі в попереку вже 3 дні.', status: 'NEW' },
+          { userId: testUser2.id, title: 'Довідка в басейн', description: 'Потрібна медична довідка для відвідування басейну.', status: 'DONE' },
+        ],
+      });
+      console.log('✅ Тестові звернення другого пацієнта створені');
     }
   }
 

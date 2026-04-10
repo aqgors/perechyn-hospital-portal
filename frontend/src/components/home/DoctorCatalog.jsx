@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Search } from '@mui/icons-material';
-import { specialtiesApi } from '../../api/specialties.api.js';
+import specialtiesApi from '../../api/specialties.api.js';
 import { doctorsApi } from '../../api/doctors.api.js';
 import DoctorCard from '../doctors/DoctorCard.jsx';
 import AppointmentDialog from '../appointments/AppointmentDialog.jsx';
@@ -27,11 +27,11 @@ export default function DoctorCatalog() {
     const fetchData = async () => {
       try {
         const [specRes, docRes] = await Promise.all([
-          specialtiesApi.getSpecialties(),
+          specialtiesApi.getAll(),
           doctorsApi.getDoctors()
         ]);
-        setSpecialties(specRes.data || []);
-        setAllDoctors(docRes.data || []);
+        setSpecialties(specRes.data?.data || specRes.data || []);
+        setAllDoctors(docRes.data?.data || docRes.data || []);
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {
@@ -87,9 +87,9 @@ export default function DoctorCatalog() {
             ))
           ) : filteredDoctors.length > 0 ? (
             filteredDoctors.map((doctor) => (
-              <Grid item xs={12} sm={6} md={3} key={doctor.id}>
+              <Grid item xs={12} sm={6} md={3} key={doctor.id} sx={{ display: 'flex' }}>
                 <Fade in timeout={500}>
-                  <Box>
+                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <DoctorCard 
                       doctor={doctor} 
                       onBook={(doc) => setBookingDoctor(doc)} 

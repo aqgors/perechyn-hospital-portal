@@ -112,7 +112,21 @@ const getDesignTokens = (mode) => ({
             : '#0F172A', // Seamless with background in dark mode
           boxShadow: mode === 'light'
             ? '0px 2px 20px rgba(13, 71, 161, 0.2)'
-            : 'border-bottom: 1px solid rgba(51, 65, 85, 0.8)',
+            : '0px 1px 0px rgba(51, 65, 85, 0.8)',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderColor: mode === 'dark' ? 'rgba(51, 65, 85, 0.8)' : undefined,
+        },
+      },
+    },
+    MuiDivider: {
+      styleOverrides: {
+        root: {
+          borderColor: mode === 'dark' ? 'rgba(51, 65, 85, 0.8)' : undefined,
         },
       },
     },

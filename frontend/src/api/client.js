@@ -46,9 +46,13 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        localStorage.clear();
-        window.location.href = '/login';
+      const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
+      if (!refreshToken || isAuthEndpoint) {
+        // Don't forcefully redirect on login/register failures — let the UI handle the error
+        if (!isAuthEndpoint) {
+          localStorage.clear();
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 

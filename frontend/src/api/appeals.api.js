@@ -8,4 +8,6 @@ export const appealsApi = {
   update: (id, data) => api.patch(`/appeals/${id}`, data),
   delete: (id) => api.delete(`/appeals/${id}`),
   getOccupiedSlots: (params) => api.get('/appeals/occupied-slots', { params }),
+  getUnreadCount: () => api.get('/appeals/unread-count'),
+  markAsRead: (id) => api.post(`/appeals/${id}/read-messages`),
 };

@@ -13,7 +13,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { uk, enUS } from 'date-fns/locale';
 import { format, isToday, isBefore, parse } from 'date-fns';
-import { specialtiesApi } from '../../api/specialties.api.js';
+import specialtiesApi from '../../api/specialties.api.js';
 import { doctorsApi } from '../../api/doctors.api.js';
 import { appealsApi } from '../../api/appeals.api.js';
 
@@ -70,8 +70,9 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
 
   // Load all specialties + doctors once
   useEffect(() => {
-    specialtiesApi.getSpecialties().then(res => {
-      const unique = Array.from(new Map(res.data.map(item => [item.id, item])).values());
+    specialtiesApi.getAll().then(res => {
+      const list = res.data?.data || res.data || [];
+      const unique = Array.from(new Map(list.map(item => [item.id, item])).values());
       setSpecialties(unique);
     }).catch(console.error);
     doctorsApi.getDoctors().then(res => setDoctors(res.data || [])).catch(console.error);

@@ -18,8 +18,15 @@ import ProfilePage from '../pages/user/ProfilePage.jsx';
 // Admin pages
 import AdminDashboard from '../pages/admin/AdminDashboard.jsx';
 import UsersManagement from '../pages/admin/UsersManagement.jsx';
-import AppealsManagement from '../pages/admin/AppealsManagement.jsx';
+import DoctorsManagement from '../pages/admin/DoctorsManagement.jsx';
+import SpecialtiesManagement from '../pages/admin/SpecialtiesManagement.jsx';
 import Statistics from '../pages/admin/Statistics.jsx';
+
+// Doctor pages
+import DoctorAppealsPage from '../pages/doctor/DoctorAppealsPage.jsx';
+
+// Registrar pages
+import RegistrarAppealsPage from '../pages/registrar/RegistrarAppealsPage.jsx';
 
 export default function AppRouter() {
   return (
@@ -32,20 +39,31 @@ export default function AppRouter() {
 
       {/* Protected */}
       <Route element={<PrivateRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/appeals" element={<AppealsPage />} />
-        <Route path="/appeals/new" element={<NewAppealPage />} />
         <Route path="/profile" element={<ProfilePage />} />
 
-        {/* Admin / Doctor */}
-        <Route element={<AdminRoute allowedRoles={['ADMIN', 'DOCTOR']} />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/appeals" element={<AppealsManagement />} />
+        {/* Patient only */}
+        <Route element={<AdminRoute allowedRoles={['USER']} />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/appeals" element={<AppealsPage />} />
+          <Route path="/appeals/new" element={<NewAppealPage />} />
+        </Route>
+
+        {/* Doctor only */}
+        <Route element={<AdminRoute allowedRoles={['DOCTOR']} />}>
+          <Route path="/doctor/appeals" element={<DoctorAppealsPage />} />
+        </Route>
+
+        {/* Registrar only */}
+        <Route element={<AdminRoute allowedRoles={['REGISTRAR']} />}>
+          <Route path="/registrar/appeals" element={<RegistrarAppealsPage />} />
         </Route>
 
         {/* Admin only */}
         <Route element={<AdminRoute allowedRoles={['ADMIN']} />}>
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<UsersManagement />} />
+          <Route path="/admin/doctors" element={<DoctorsManagement />} />
+          <Route path="/admin/specialties" element={<SpecialtiesManagement />} />
           <Route path="/admin/stats" element={<Statistics />} />
         </Route>
       </Route>

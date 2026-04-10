@@ -12,6 +12,7 @@ enum Role {
   USER
   ADMIN
   DOCTOR
+  REGISTRAR
 }
 
 enum RequestStatus {
@@ -41,6 +42,7 @@ model User {
   requests        Request[]  @relation("UserRequests")
   appointments    Request[]  @relation("DoctorRequests")
   logs            Log[]
+  messages        Message[]  @relation("UserMessages")
 
   @@map("users")
 }
@@ -55,15 +57,32 @@ model Request {
   status          RequestStatus @default(NEW)
   appointmentDate DateTime?     @map("appointment_date")
   appointmentTime String?       @map("appointment_time")
+  doctorComment   String?       @db.Text @map("doctor_comment")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt       @map("updated_at")
 
   user            User          @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
   doctor          User?         @relation("DoctorRequests", fields: [doctorId], references: [id], onDelete: SetNull)
   specialty       Specialty?    @relation(fields: [specialtyId], references: [id])
+  messages        Message[]     @relation("RequestMessages")
 
   @@map("requests")
 }
+
+model Message {
+  id        String   @id @default(cuid())
+  requestId String   @map("request_id")
+  senderId  String   @map("sender_id")
+  text      String   @db.Text
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  request   Request  @relation("RequestMessages", fields: [requestId], references: [id], onDelete: Cascade)
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
 
 model Specialty {
   id      String   @id @default(cuid())

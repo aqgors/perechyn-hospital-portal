@@ -14,10 +14,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../../theme/ThemeContext.jsx';
 import { logout } from '../../store/authSlice.js';
+import { fetchUnreadCount } from '../../store/appealsSlice.js';
+import { useEffect } from 'react';
+import { Badge } from '@mui/material';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const { user, isAuthenticated } = useSelector((s) => s.auth);
+  const { unreadCount } = useSelector((s) => s.appeals);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { mode = 'light', toggleMode = () => {}, changeLanguage } = useSettings() || {};
@@ -27,7 +31,8 @@ export default function Navbar() {
   const ROLE_LABELS = { 
     ADMIN: t('common.admin'), 
     DOCTOR: t('common.doctor', 'Лікар'), 
-    USER: t('common.patient', 'Пацієнт') 
+    USER: t('common.patient', 'Пацієнт'),
+    REGISTRAR: 'Реєстратура',
   };
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -39,15 +44,41 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'DOCTOR';
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'USER') {
+      dispatch(fetchUnreadCount());
+    }
+  }, [dispatch, isAuthenticated, user]);
 
   const navLinks = isAuthenticated
-    ? [
-        { label: t('common.dashboard'), to: '/dashboard', icon: <Dashboard fontSize="small" /> },
-        { label: t('common.appeals'), to: '/appeals', icon: <Description fontSize="small" /> },
-        { label: t('common.newAppeal'), to: '/appeals/new', icon: <AddCircle fontSize="small" /> },
-        ...(isAdmin ? [{ label: t('common.admin'), to: '/admin', icon: <AdminPanelSettings fontSize="small" /> }] : []),
-      ]
+    ? user?.role === 'DOCTOR'
+      ? [
+          { label: 'Черга пацієнтів', to: '/doctor/appeals', icon: <Description fontSize="small" /> },
+        ]
+      : user?.role === 'ADMIN'
+      ? [
+          { label: 'Статистика', to: '/admin/stats', icon: <Dashboard fontSize="small" /> },
+          { label: 'Користувачі', to: '/admin/users', icon: <AdminPanelSettings fontSize="small" /> },
+          { label: 'Лікарі сайту', to: '/admin/doctors', icon: <LocalHospital fontSize="small" /> },
+          { label: 'Спеціальності', to: '/admin/specialties', icon: <Description fontSize="small" /> },
+        ]
+      : user?.role === 'REGISTRAR'
+      ? [
+          { label: 'Черга звернень', to: '/registrar/appeals', icon: <Description fontSize="small" /> },
+        ]
+      : [
+          { label: t('common.dashboard'), to: '/dashboard', icon: <Dashboard fontSize="small" /> },
+          { 
+            label: t('common.appeals'), 
+            to: '/appeals', 
+            icon: (
+              <Badge badgeContent={unreadCount} color="error" sx={{ '& .MuiBadge-badge': { right: -3, top: 0 } }}>
+                <Description fontSize="small" />
+              </Badge>
+            )
+          },
+          { label: t('common.newAppeal'), to: '/appeals/new', icon: <AddCircle fontSize="small" /> },
+        ]
     : [];
 
   return (
@@ -62,8 +93,7 @@ export default function Navbar() {
         {/* Logo */}
         <Box
           component="a"
-          href="/"
-          onClick={(e) => { e.preventDefault(); window.location.href = '/'; }}
+          href={user?.role === 'DOCTOR' ? '/doctor/appeals' : user?.role === 'ADMIN' ? '/admin/stats' : '/'}
           sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit', flexGrow: { xs: 1, md: 0 }, mr: { md: 3 }, cursor: 'pointer' }}
         >
           <LocalHospital sx={{ fontSize: 28 }} />
@@ -123,11 +153,6 @@ export default function Navbar() {
               <MenuItem onClick={() => { navigate('/profile'); setAnchorEl(null); }}>
                 <ListItemIcon><Person fontSize="small" /></ListItemIcon>{t('common.profile')}
               </MenuItem>
-              {isAdmin && (
-                <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }}>
-                  <ListItemIcon><AdminPanelSettings fontSize="small" /></ListItemIcon>Адмінпанель
-                </MenuItem>
-              )}
               <Divider />
               <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                 <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>{t('common.logout')}

@@ -1,9 +1,9 @@
-// src/pages/public/HomePage.jsx
-import { Box, Container, Typography, Button, Grid, Paper, Chip } from '@mui/material';
+import { Box, Container, Typography, Button, Grid, Paper, Chip, useTheme } from '@mui/material';
 import {
   LocalHospital, Description, Security, Speed, PhoneInTalk,
   CheckCircle, ArrowForward,
 } from '@mui/icons-material';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -21,17 +21,27 @@ const getFeatures = (t) => [
 export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((s) => s.auth);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const { isAuthenticated, user } = useSelector((s) => s.auth);
   const features = getFeatures(t);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.role === 'REGISTRAR') navigate('/registrar/appeals', { replace: true });
+      if (user?.role === 'DOCTOR') navigate('/doctor/appeals', { replace: true });
+      if (user?.role === 'ADMIN') navigate('/admin/stats', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
 
       {/* Hero */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 40%, #1E88E5 100%)',
+          background: isDark ? 'linear-gradient(135deg, #0B0F19 0%, #111827 100%)' : 'linear-gradient(135deg, #0D47A1 0%, #1565C0 40%, #1E88E5 100%)',
           color: '#fff',
           py: { xs: 8, md: 14 },
           position: 'relative',
@@ -84,7 +94,7 @@ export default function HomePage() {
       </Box>
 
       {/* Stats */}
-      <Box sx={{ bgcolor: '#fff', py: 4, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+      <Box sx={{ bgcolor: isDark ? 'background.paper' : '#fff', py: 4, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
         <Container maxWidth="lg">
           <Grid container spacing={2}>
             {[
@@ -113,7 +123,7 @@ export default function HomePage() {
         <Grid container spacing={3}>
           {features.map((f) => (
             <Grid item xs={12} sm={6} md={3} key={f.title}>
-              <Paper elevation={0} sx={{ p: 3, height: '100%', textAlign: 'center', border: '1px solid', borderColor: 'grey.200', borderRadius: 3, transition: 'all 0.2s', '&:hover': { boxShadow: 4, borderColor: 'primary.light', transform: 'translateY(-4px)' } }}>
+              <Paper elevation={0} sx={{ p: 3, height: '100%', textAlign: 'center', border: '1px solid', borderColor: isDark ? 'divider' : 'grey.200', bgcolor: isDark ? 'background.paper' : '#fff', borderRadius: 3, transition: 'all 0.2s', '&:hover': { boxShadow: 4, borderColor: 'primary.light', transform: 'translateY(-4px)' } }}>
                 <Box sx={{ mb: 2 }}>{f.icon}</Box>
                 <Typography variant="h6" fontWeight={600} gutterBottom>{f.title}</Typography>
                 <Typography variant="body2" color="text.secondary">{f.desc}</Typography>
@@ -129,7 +139,7 @@ export default function HomePage() {
       <DoctorCatalog />
 
       {/* CTA */}
-      <Box sx={{ bgcolor: 'primary.main', background: 'linear-gradient(135deg, #1565C0 0%, #00897B 100%)', py: 8, textAlign: 'center' }}>
+      <Box sx={{ bgcolor: 'primary.main', background: isDark ? 'linear-gradient(135deg, #1F2937 0%, #111827 100%)' : 'linear-gradient(135deg, #1565C0 0%, #00897B 100%)', py: 8, textAlign: 'center' }}>
         <Container maxWidth="sm">
           <CheckCircle sx={{ fontSize: 48, color: 'rgba(255,255,255,0.8)', mb: 2 }} />
           <Typography variant="h3" fontWeight={700} color="#fff" gutterBottom>{t('homePage.ctaTitle', 'Готові до взаємодії?')}</Typography>

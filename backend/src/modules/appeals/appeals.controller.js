@@ -14,6 +14,16 @@ const SELECT = {
   user: { select: { id: true, name: true, email: true } },
   doctor: { select: { id: true, name: true, specialty: true } },
   specialty: { select: { id: true, nameUA: true, nameEN: true } },
+  messages: {
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      text: true,
+      isRead: true,
+      createdAt: true,
+      sender: { select: { id: true, name: true, role: true } },
+    }
+  }
 };
 
 export async function getMyAppeals(request, reply) {
@@ -194,5 +204,51 @@ export async function getOccupiedSlots(request, reply) {
   } catch (error) {
     console.error('[GET_OCCUPIED_SLOTS_ERROR]:', error);
     return reply.code(500).send({ statusCode: 500, message: 'Помилка при отриманні зайнятих слотів' });
+  }
+}
+
+export async function getUnreadCount(request, reply) {
+  try {
+    const unreadCount = await prisma.message.count({
+      where: {
+        isRead: false,
+        request: {
+          userId: request.user.id,
+        },
+      },
+    });
+    return reply.send({ count: unreadCount });
+  } catch (error) {
+    console.error('[GET_UNREAD_COUNT_ERROR]:', error);
+    return reply.code(500).send({ statusCode: 500, message: 'Помилка при отриманні кількості повідомлень' });
+  }
+}
+
+export async function markAsRead(request, reply) {
+  try {
+    const { id } = request.params;
+    
+    // Validate ownership
+    const appeal = await prisma.request.findFirst({
+      where: { id, userId: request.user.id },
+    });
+    if (!appeal) {
+      return reply.code(404).send({ statusCode: 404, message: 'Звернення не знайдено' });
+    }
+
+    await prisma.message.updateMany({
+      where: {
+        requestId: id,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    return reply.code(200).send({ success: true });
+  } catch (error) {
+    console.error('[MARK_AS_READ_ERROR]:', error);
+    return reply.code(500).send({ statusCode: 500, message: 'Помилка при оновленні статусу повідомлень' });
   }
 }

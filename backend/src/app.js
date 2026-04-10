@@ -13,6 +13,8 @@ import { usersRoutes } from './modules/users/users.routes.js';
 import { appealsRoutes } from './modules/appeals/appeals.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
 import { doctorsRoutes } from './modules/doctors/doctors.routes.js';
+import { doctorRoutes } from './modules/doctor/doctor.routes.js';
+import { registrarRoutes } from './modules/registrar/registrar.routes.js';
 import specialtiesRoutes from './modules/specialties/specialties.routes.js';
 
 export async function buildApp() {
@@ -46,7 +48,9 @@ export async function buildApp() {
   fastify.register(usersRoutes, { prefix: '/api/users' });
   fastify.register(appealsRoutes, { prefix: '/api/appeals' });
   fastify.register(adminRoutes, { prefix: '/api/admin' });
-  fastify.register(doctorsRoutes, { prefix: '/api/doctors' });
+  fastify.register(doctorsRoutes, { prefix: '/api/doctors' });     // Public doctors catalog API
+  fastify.register(doctorRoutes, { prefix: '/api/doctor' });       // Protected DOCTOR role API
+  fastify.register(registrarRoutes, { prefix: '/api/registrar' }); // Protected REGISTRAR role API
   fastify.register(specialtiesRoutes, { prefix: '/api/specialties' });
 
   // Глобальний обробник помилок
