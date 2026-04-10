@@ -15,8 +15,16 @@ import { RoleChip } from '../../components/common/StatusChip.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import 'dayjs/locale/uk';
+import 'dayjs/locale/en';
+import { useTranslation } from 'react-i18next';
 
 export default function UsersManagement() {
+  const { t, i18n } = useTranslation();
+  
+  const currentLangCode = i18n.language === 'en' ? 'en' : 'uk';
+  dayjs.locale(currentLangCode);
+
   const [users, setUsers] = useState([]);
   const [meta, setMeta] = useState({ total: 0, pages: 1 });
   const [loading, setLoading] = useState(true);
@@ -73,17 +81,17 @@ export default function UsersManagement() {
         updateData.photoUrl = photoUrl;
       }
       await adminApi.updateUser(selected.id, updateData);
-      toast.success('Роль оновлено');
+      toast.success(t('toast.roleUpdated', 'Роль оновлено'));
       setDialogOpen(false);
       load();
     } finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Видалити користувача? Всі його звернення також буде видалено.')) return;
+    if (!window.confirm(t('admin.deleteUserConfirm', 'Видалити користувача? Всі його звернення також буде видалено.'))) return;
     try {
       await adminApi.deleteUser(id);
-      toast.success('Користувача видалено');
+      toast.success(t('toast.userDeleted', 'Користувача видалено'));
       load();
     } catch { }
   };
@@ -92,12 +100,12 @@ export default function UsersManagement() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 4, flexGrow: 1 }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom>Управління користувачами</Typography>
-        <Typography color="text.secondary" mb={3}>Всього: {meta.total} користувачів</Typography>
+        <Typography variant="h4" fontWeight={700} gutterBottom>{t('admin.manageUsers', 'Управління користувачами')}</Typography>
+        <Typography color="text.secondary" mb={3}>{t('admin.totalUsers', 'Всього: {{total}} користувачів', { total: meta.total })}</Typography>
 
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           <TextField
-            placeholder="Пошук за іменем або email..."
+            placeholder={t('admin.searchUsers', 'Пошук за іменем або email...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); load(); } }}
@@ -112,11 +120,11 @@ export default function UsersManagement() {
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50' }}>
-                    <TableCell sx={{ fontWeight: 700 }}>Користувач</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Роль</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Дата реєстрації</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700 }}>Дії</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>{t('common.user', 'Користувач')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>{t('common.email', 'Email')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>{t('common.role', 'Роль')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>{t('admin.dateJoined', 'Дата реєстрації')}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 700 }}>{t('common.actions', 'Дії')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -134,13 +142,13 @@ export default function UsersManagement() {
                       <TableCell><RoleChip role={user.role} /></TableCell>
                       <TableCell><Typography variant="caption">{dayjs(user.createdAt).format('DD.MM.YYYY')}</Typography></TableCell>
                       <TableCell align="center">
-                        <IconButton size="small" color="primary" onClick={() => openEdit(user)} title="Змінити роль"><Edit /></IconButton>
-                        <IconButton size="small" color="error" onClick={() => handleDelete(user.id)} title="Видалити"><Delete /></IconButton>
+                        <IconButton size="small" color="primary" onClick={() => openEdit(user)} title={t('common.edit', 'Змінити')}><Edit /></IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleDelete(user.id)} title={t('common.delete', 'Видалити')}><Delete /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
                   {users.length === 0 && (
-                    <TableRow><TableCell colSpan={5} sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>Користувачів не знайдено</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>{t('admin.noUsersFound', 'Користувачів не знайдено')}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -157,43 +165,43 @@ export default function UsersManagement() {
       <Footer />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle fontWeight={700}>Зміна ролі</DialogTitle>
+        <DialogTitle fontWeight={700}>{t('admin.changeRoleTitle', 'Зміна ролі')}</DialogTitle>
         <DialogContent sx={{ pt: '16px !important' }}>
           {selected && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="body2" color="text.secondary">{selected.name} · {selected.email}</Typography>
-              <TextField select label="Роль" value={newRole} onChange={(e) => { setNewRole(e.target.value); setFormError(''); }} fullWidth>
-                <MenuItem value="USER">Пацієнт (USER)</MenuItem>
-                <MenuItem value="ADMIN">Адміністратор (ADMIN)</MenuItem>
-                <MenuItem value="DOCTOR">Лікар (DOCTOR)</MenuItem>
-                <MenuItem value="REGISTRAR">Реєстратура (REGISTRAR)</MenuItem>
+              <TextField select label={t('common.role', 'Роль')} value={newRole} onChange={(e) => { setNewRole(e.target.value); setFormError(''); }} fullWidth>
+                <MenuItem value="USER">{t('common.patient', 'Пацієнт')} (USER)</MenuItem>
+                <MenuItem value="ADMIN">{t('common.admin', 'Адміністратор')} (ADMIN)</MenuItem>
+                <MenuItem value="DOCTOR">{t('common.doctor', 'Лікар')} (DOCTOR)</MenuItem>
+                <MenuItem value="REGISTRAR">{t('common.registrar', 'Реєстратура')} (REGISTRAR)</MenuItem>
               </TextField>
 
               {newRole === 'DOCTOR' && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, p: 2, bgcolor: 'action.hover', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" color="primary">Профіль лікаря (публічний каталог)</Typography>
+                  <Typography variant="subtitle2" color="primary">{t('admin.docProfileCatalog', 'Профіль лікаря (публічний каталог)')}</Typography>
                   <TextField
                     select
-                    label="Спеціальність *"
+                    label={t('common.specialty', 'Спеціальність *')}
                     value={specialtyId}
                     onChange={(e) => { setSpecialtyId(e.target.value); setFormError(''); }}
                     fullWidth
                     error={Boolean(formError && !specialtyId)}
                     helperText={formError && !specialtyId ? formError : ''}
                   >
-                    {specialties.map(s => <MenuItem key={s.id} value={s.id}>{s.nameUA}</MenuItem>)}
+                    {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
                   </TextField>
-                  <TextField label="Посилання на фото (Photo URL)" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth />
-                  <TextField label="Біографія (UKR)" multiline rows={3} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />
-                  <TextField label="Біографія (ENG)" multiline rows={3} value={bioEN} onChange={(e) => setBioEN(e.target.value)} fullWidth />
+                  <TextField label="Photo URL" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth />
+                  <TextField label={t('admin.docBioUA', 'Біографія (UKR)')} multiline rows={3} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />
+                  <TextField label={t('admin.docBioEN', 'Біографія (ENG)')} multiline rows={3} value={bioEN} onChange={(e) => setBioEN(e.target.value)} fullWidth />
                 </Box>
               )}
             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setDialogOpen(false)}>Скасувати</Button>
-          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? 'Збереження...' : 'Зберегти'}</Button>
+          <Button onClick={() => setDialogOpen(false)}>{t('common.cancel', 'Скасувати')}</Button>
+          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? t('common.saving', 'Збереження...') : t('common.save', 'Зберегти')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

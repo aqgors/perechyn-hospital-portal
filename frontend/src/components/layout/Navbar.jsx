@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import {
   LocalHospital, Menu as MenuIcon, AccountCircle, Dashboard, Description,
-  AdminPanelSettings, Logout, Person, AddCircle, DarkMode, LightMode,
+  AdminPanelSettings, Logout, Person, AddCircle, DarkMode, LightMode, Language
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../../theme/ThemeContext.jsx';
@@ -32,7 +32,7 @@ export default function Navbar() {
     ADMIN: t('common.admin'), 
     DOCTOR: t('common.doctor', 'Лікар'), 
     USER: t('common.patient', 'Пацієнт'),
-    REGISTRAR: 'Реєстратура',
+    REGISTRAR: t('common.registrar', 'Реєстратура'),
   };
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -53,18 +53,18 @@ export default function Navbar() {
   const navLinks = isAuthenticated
     ? user?.role === 'DOCTOR'
       ? [
-          { label: 'Черга пацієнтів', to: '/doctor/appeals', icon: <Description fontSize="small" /> },
+          { label: t('nav.doctorAppeals', 'Черга пацієнтів'), to: '/doctor/appeals', icon: <Description fontSize="small" /> },
         ]
       : user?.role === 'ADMIN'
       ? [
-          { label: 'Статистика', to: '/admin/stats', icon: <Dashboard fontSize="small" /> },
-          { label: 'Користувачі', to: '/admin/users', icon: <AdminPanelSettings fontSize="small" /> },
-          { label: 'Лікарі сайту', to: '/admin/doctors', icon: <LocalHospital fontSize="small" /> },
-          { label: 'Спеціальності', to: '/admin/specialties', icon: <Description fontSize="small" /> },
+          { label: t('nav.adminStats', 'Статистика'), to: '/admin/stats', icon: <Dashboard fontSize="small" /> },
+          { label: t('nav.adminUsers', 'Користувачі'), to: '/admin/users', icon: <AdminPanelSettings fontSize="small" /> },
+          { label: t('nav.adminDoctors', 'Лікарі сайту'), to: '/admin/doctors', icon: <LocalHospital fontSize="small" /> },
+          { label: t('nav.adminSpecialties', 'Спеціальності'), to: '/admin/specialties', icon: <Description fontSize="small" /> },
         ]
       : user?.role === 'REGISTRAR'
       ? [
-          { label: 'Черга звернень', to: '/registrar/appeals', icon: <Description fontSize="small" /> },
+          { label: t('nav.registrarAppeals', 'Черга звернень'), to: '/registrar/appeals', icon: <Description fontSize="small" /> },
         ]
       : [
           { label: t('common.dashboard'), to: '/dashboard', icon: <Dashboard fontSize="small" /> },
@@ -126,6 +126,18 @@ export default function Navbar() {
 
         <Box sx={{ flexGrow: { xs: 0, md: 1 } }} />
 
+        {/* Language Toggle */}
+        <Button 
+          color="inherit" 
+          onClick={(e) => {
+            e.preventDefault();
+            i18n.changeLanguage(i18n.language.includes('en') ? 'ua' : 'en');
+          }} 
+          sx={{ minWidth: 'auto', mr: 1, fontWeight: 700 }}
+        >
+          {i18n.language.includes('en') ? 'EN' : 'UA'}
+        </Button>
+
         {/* Theme Toggle */}
         <IconButton color="inherit" onClick={toggleMode} sx={{ mr: 1 }}>
           {mode === 'light' ? <DarkMode /> : <LightMode />}
@@ -176,7 +188,7 @@ export default function Navbar() {
         <Box sx={{ width: 260, pt: 2 }}>
           <Box sx={{ px: 2, pb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <LocalHospital color="primary" />
-            <Typography fontWeight={700}>Перечинська ЦРЛ</Typography>
+            <Typography fontWeight={700}>{t('common.appTitle')}</Typography>
           </Box>
           <Divider />
           <List>

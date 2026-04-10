@@ -17,11 +17,11 @@ import AppealForm from '../../components/appeals/AppealForm.jsx';
 import { fetchAppeals, deleteAppeal, updateAppeal } from '../../store/appealsSlice.js';
 
 const STATUSES = [
-  { value: '',            label: 'Усі',        color: 'default'  },
-  { value: 'NEW',         label: 'Нові',       color: 'info'     },
-  { value: 'IN_PROGRESS', label: 'В обробці',  color: 'warning'  },
-  { value: 'DONE',        label: 'Виконано',   color: 'success'  },
-  { value: 'REJECTED',    label: 'Відхилено',  color: 'error'    },
+  { value: '',            label: 'Усі',        labelKey: 'appeals.statusAll', color: 'default'  },
+  { value: 'NEW',         label: 'Нові',       labelKey: 'appeals.statusNew', color: 'info'     },
+  { value: 'IN_PROGRESS', label: 'В обробці',  labelKey: 'appeals.statusInProgress', color: 'warning'  },
+  { value: 'DONE',        label: 'Виконано',   labelKey: 'appeals.statusDone', color: 'success'  },
+  { value: 'REJECTED',    label: 'Відхилено',  labelKey: 'appeals.statusRejected', color: 'error'    },
 ];
 
 export default function AppealsPage() {
@@ -76,7 +76,7 @@ export default function AppealsPage() {
               <Box>
                 <Typography variant="h4" fontWeight={800}>{t('common.appeals', 'Мої звернення')}</Typography>
                 <Typography color="text.secondary" variant="body2">
-                  Всього звернень: {meta?.total ?? 0}
+                  {t('appealsPage.totalAppeals', 'Всього звернень:')} {meta?.total ?? 0}
                 </Typography>
               </Box>
             </Box>
@@ -96,7 +96,7 @@ export default function AppealsPage() {
           {/* Status Filter */}
           <Box>
             <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
-              Фільтр за статусом:
+              {t('appealsPage.statusFilter', 'Фільтр за статусом:')}
             </Typography>
             <ToggleButtonGroup
               value={status}
@@ -124,7 +124,7 @@ export default function AppealsPage() {
                     },
                   }}
                 >
-                  {s.label}
+                  {t(s.labelKey, s.label)}
                   {s.value === status && meta?.total > 0 && (
                     <Chip
                       label={meta.total}
@@ -144,10 +144,10 @@ export default function AppealsPage() {
         ) : appeals?.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 12 }}>
             <Typography variant="h5" color="text.secondary" gutterBottom fontWeight={600}>
-              {status ? `Немає звернень зі статусом "${STATUSES.find(s => s.value === status)?.label}"` : 'Звернень не знайдено'}
+              {status ? t('appeals.notFoundStatus', `Немає звернень зі статусом "${STATUSES.find(s => s.value === status)?.label}"`) : t('appeals.notFound', 'Звернень не знайдено')}
             </Typography>
             <Typography color="text.disabled" sx={{ mb: 4 }}>
-              Поки що ви не створювали жодного звернення
+              {t('appeals.noAppealsYet', 'Поки що ви не створювали жодного звернення')}
             </Typography>
             <Button variant="outlined" onClick={() => navigate('/appeals/new')} startIcon={<AddCircle />} size="large" sx={{ borderRadius: 3 }}>
               {t('common.newAppeal', 'Нове звернення')}
@@ -182,7 +182,7 @@ export default function AppealsPage() {
       {/* Edit Modal */}
       <Dialog open={!!editingAppeal} onClose={() => setEditingAppeal(null)} maxWidth="md" fullWidth scroll="body">
         <DialogTitle sx={{ m: 0, p: 3, fontWeight: 800, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Редагувати звернення
+          {t('appeals.editAppeal', 'Редагувати звернення')}
           <IconButton onClick={() => setEditingAppeal(null)} color="secondary"><Close /></IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ p: 3 }}>
@@ -199,15 +199,15 @@ export default function AppealsPage() {
       {/* Delete Confirmation */}
       <Dialog open={!!deletingAppealId} onClose={() => setDeletingAppealId(null)}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 800 }}>
-          <WarningTwoTone color="error" /> Видалити звернення?
+          <WarningTwoTone color="error" /> {t('appeals.deleteConfirmation', 'Видалити звернення?')}
         </DialogTitle>
         <DialogContent>
-          <Typography>Ви впевнені, що хочете видалити це звернення? Цю дію неможливо буде скасувати.</Typography>
+          <Typography>{t('appeals.deleteWarning', 'Ви впевнені, що хочете видалити це звернення? Цю дію неможливо буде скасувати.')}</Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={() => setDeletingAppealId(null)} color="inherit" sx={{ fontWeight: 700 }}>Скасувати</Button>
+          <Button onClick={() => setDeletingAppealId(null)} color="inherit" sx={{ fontWeight: 700 }}>{t('common.cancel', 'Скасувати')}</Button>
           <Button onClick={handleDelete} variant="contained" color="error" sx={{ fontWeight: 700, px: 3 }}>
-            Так, видалити
+            {t('common.deleteConfirm', 'Так, видалити')}
           </Button>
         </DialogActions>
       </Dialog>

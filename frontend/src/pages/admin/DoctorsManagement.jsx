@@ -13,8 +13,10 @@ import { adminApi } from '../../api/admin.api.js';
 import specialtiesApi from '../../api/specialties.api.js';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function DoctorsManagement() {
+  const { t, i18n } = useTranslation();
   const [doctors, setDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export default function DoctorsManagement() {
       setDoctors(docRes.data?.data || docRes.data || []);
       setSpecialties(specRes.data?.data || []);
     } catch (error) {
-      toast.error('Помилка завантаження лікарів');
+      toast.error(t('toast.doctorsLoadError', 'Помилка завантаження лікарів'));
     }
     setLoading(false);
   };
@@ -67,23 +69,23 @@ export default function DoctorsManagement() {
         bioEN,
         photoUrl
       });
-      toast.success('Картку лікаря оновлено');
+      toast.success(t('toast.doctorCardUpdated', 'Картку лікаря оновлено'));
       setDialogOpen(false);
       loadData();
     } catch (error) {
-      toast.error('Не вдалося зберегти зміни');
+      toast.error(t('toast.saveChangesError', 'Не вдалося зберегти зміни'));
     }
     setSaving(false);
   };
 
   const handleRemove = async (id) => {
-    if (!window.confirm('Зняти цього користувача з публікації як лікаря? Його роль буде змінено на Пацієнт (USER).')) return;
+    if (!window.confirm(t('admin.removeDoctorConfirm', 'Зняти цього користувача з публікації як лікаря? Його роль буде змінено на Пацієнт (USER).'))) return;
     try {
       await adminApi.updateUser(id, { role: 'USER' });
-      toast.success('Лікаря прибрано з каталогу');
+      toast.success(t('toast.doctorRemoved', 'Лікаря прибрано з каталогу'));
       loadData();
     } catch (error) {
-      toast.error('Помилка видалення лікаря');
+      toast.error(t('toast.removeDoctorError', 'Помилка видалення лікаря'));
     }
   };
 
@@ -100,26 +102,24 @@ export default function DoctorsManagement() {
       <Container maxWidth="xl" sx={{ py: 4, flexGrow: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight={700} gutterBottom>Каталог лікарів сайту</Typography>
-            <Typography color="text.secondary">Управління публічними картками лікарів, що відображаються пацієнтам.</Typography>
+            <Typography variant="h4" fontWeight={700} gutterBottom>{t('admin.manageDoctorsCatalog', 'Каталог лікарів сайту')}</Typography>
+            <Typography color="text.secondary">{t('admin.manageDoctorsCatalogDesc', 'Управління публічними картками лікарів, що відображаються пацієнтам.')}</Typography>
           </Box>
           <Button 
             variant="contained" 
             startIcon={<Add />} 
             onClick={() => {
-              // Creating a doctor requires elevating an existing user.
-              // Instruct admin to do it via Users tab.
-              window.alert("Щоб додати нового лікаря, перейдіть у вкладку 'Користувачі', знайдіть його акаунт, натисніть 'Редагувати' (олівець) і змініть роль на 'DOCTOR'.");
+              window.alert(t('admin.addDoctorInstruction', "Щоб додати нового лікаря, перейдіть у вкладку 'Користувачі', знайдіть його акаунт, натисніть 'Редагувати' (олівець) і змініть роль на 'DOCTOR'."));
             }}
           >
-            Додати лікаря
+            {t('admin.addDoctor', 'Додати лікаря')}
           </Button>
         </Box>
 
         <Box sx={{ mb: 4, maxWidth: 400 }}>
           <TextField
             fullWidth
-            placeholder="Пошук за іменем або спеціальністю..."
+            placeholder={t('admin.searchByNameOrSpec', 'Пошук за іменем або спеціальністю...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             InputProps={{ startAdornment: <InputAdornment position="start"><Search /></InputAdornment> }}
@@ -142,8 +142,8 @@ export default function DoctorsManagement() {
             {filteredDoctors.length === 0 && (
               <Grid item xs={12}>
                 <Box textAlign="center" py={8}>
-                  <Typography variant="h6" color="text.secondary">Лікарів не знайдено</Typography>
-                  <Typography variant="body2" color="text.disabled">Спробуйте змінити критерії пошуку</Typography>
+                  <Typography variant="h6" color="text.secondary">{t('admin.doctorsNotFound', 'Лікарів не знайдено')}</Typography>
+                  <Typography variant="body2" color="text.disabled">{t('admin.tryChangeCriteria', 'Спробуйте змінити критерії пошуку')}</Typography>
                 </Box>
               </Grid>
             )}
@@ -153,26 +153,26 @@ export default function DoctorsManagement() {
       <Footer />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={700}>Редагування картки лікаря</DialogTitle>
+        <DialogTitle fontWeight={700}>{t('admin.editDoctorCard', 'Редагування картки лікаря')}</DialogTitle>
         <DialogContent dividers>
           {selectedDoctor && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
               <Typography variant="subtitle1" fontWeight={600} gutterBottom>{selectedDoctor.name}</Typography>
               
-              <TextField select label="Спеціальність" value={specialtyId} onChange={(e) => setSpecialtyId(e.target.value)} fullWidth>
-                <MenuItem value=""><em>Не обрано</em></MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{s.nameUA}</MenuItem>)}
+              <TextField select label={t('common.specialty', 'Спеціальність')} value={specialtyId} onChange={(e) => setSpecialtyId(e.target.value)} fullWidth>
+                <MenuItem value=""><em>{t('admin.notSelected', 'Не обрано')}</em></MenuItem>
+                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
               
-              <TextField label="Посилання на фото (Photo URL)" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth helperText="Додайте пряме посилання на зображення (jpg, png)" />
-              <TextField label="Біографія (UKR)" multiline rows={4} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />
-              <TextField label="Біографія (ENG)" multiline rows={4} value={bioEN} onChange={(e) => setBioEN(e.target.value)} fullWidth />
+              <TextField label={t('common.photoUrlLabel', 'Посилання на фото (Photo URL)')} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth helperText={t('common.photoUrlHelper', 'Додайте пряме посилання на зображення (jpg, png)')} />
+              <TextField label={t('admin.docBioUA', 'Біографія (UKR)')} multiline rows={4} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />
+              <TextField label={t('admin.docBioEN', 'Біографія (ENG)')} multiline rows={4} value={bioEN} onChange={(e) => setBioEN(e.target.value)} fullWidth />
             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2, px: 3 }}>
-          <Button onClick={() => setDialogOpen(false)} color="inherit">Скасувати</Button>
-          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? 'Збереження...' : 'Зберегти картку'}</Button>
+          <Button onClick={() => setDialogOpen(false)} color="inherit">{t('common.cancel', 'Скасувати')}</Button>
+          <Button variant="contained" onClick={handleSave} disabled={saving}>{saving ? t('common.saving', 'Збереження...') : t('common.saveCard', 'Зберегти картку')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -16,11 +16,17 @@ import { adminApi } from '../../api/admin.api.js';
 import { StatusChip } from '../../components/common/StatusChip.jsx';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
-dayjs.locale('uk');
+import 'dayjs/locale/en';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
+  const { t, i18n } = useTranslation();
+
+  const currentLangCode = i18n.language === 'en' ? 'en' : 'uk';
+  dayjs.locale(currentLangCode);
+
   const [stats, setStats] = useState({
     users: { total: 0 },
     appeals: { total: 0, byStatus: { pending: 0, resolved: 0 } },
@@ -37,18 +43,18 @@ export default function AdminDashboard() {
   }, [user]);
 
   const statCards = [
-    { label: 'Користувачів', value: stats?.users?.total || 0, icon: <People />, color: '#1565C0', bg: '#E3F2FD' },
-    { label: 'Всього звернень', value: stats?.appeals?.total || 0, icon: <Description />, color: '#00897B', bg: '#E0F2F1' },
-    { label: 'Очікують обробки', value: stats?.appeals?.byStatus?.pending || 0, icon: <HourglassEmpty />, color: '#F57C00', bg: '#FFF3E0' },
-    { label: 'Вирішено', value: stats?.appeals?.byStatus?.resolved || 0, icon: <CheckCircle />, color: '#2E7D32', bg: '#E8F5E9' },
+    { label: t('admin.usersTotal', 'Користувачів'), value: stats?.users?.total || 0, icon: <People />, color: '#1565C0', bg: '#E3F2FD' },
+    { label: t('admin.appealsTotal', 'Всього звернень'), value: stats?.appeals?.total || 0, icon: <Description />, color: '#00897B', bg: '#E0F2F1' },
+    { label: t('admin.appealsPending', 'Очікують обробки'), value: stats?.appeals?.byStatus?.pending || 0, icon: <HourglassEmpty />, color: '#F57C00', bg: '#FFF3E0' },
+    { label: t('admin.appealsResolved', 'Вирішено'), value: stats?.appeals?.byStatus?.resolved || 0, icon: <CheckCircle />, color: '#2E7D32', bg: '#E8F5E9' },
   ];
 
   const adminLinks = [
-    { label: 'Управління зверненнями', desc: 'Переглядати та відповідати на звернення', to: '/admin/appeals', icon: <Description />, color: 'primary' },
+    { label: t('admin.manageAppeals', 'Управління зверненнями'), desc: t('admin.manageAppealsDesc', 'Переглядати та відповідати на звернення'), to: '/admin/appeals', icon: <Description />, color: 'primary' },
     ...(user?.role === 'ADMIN'
       ? [
-          { label: 'Управління користувачами', desc: 'Ролі, статуси, редагування', to: '/admin/users', icon: <People />, color: 'secondary' },
-          { label: 'Статистика', desc: 'Аналітика та звіти', to: '/admin/stats', icon: <TrendingUp />, color: 'success' },
+          { label: t('admin.manageUsers', 'Управління користувачами'), desc: t('admin.manageUsersDesc', 'Ролі, статуси, редагування'), to: '/admin/users', icon: <People />, color: 'secondary' },
+          { label: t('admin.stats', 'Статистика'), desc: t('admin.statsDesc', 'Аналітика та звіти'), to: '/admin/stats', icon: <TrendingUp />, color: 'success' },
         ]
       : []),
   ];
@@ -63,8 +69,8 @@ export default function AdminDashboard() {
             <AdminPanelSettings sx={{ color: '#fff', fontSize: 28 }} />
           </Box>
           <Box>
-            <Typography variant="h4" fontWeight={700}>Адміністрування</Typography>
-            <Chip label={user?.role === 'ADMIN' ? 'Адміністратор' : 'Лікар'} color={user?.role === 'ADMIN' ? 'error' : 'secondary'} size="small" sx={{ fontWeight: 600 }} />
+            <Typography variant="h4" fontWeight={700}>{t('admin.title', 'Адміністрування')}</Typography>
+            <Chip label={user?.role === 'ADMIN' ? t('common.admin') : t('common.doctor')} color={user?.role === 'ADMIN' ? 'error' : 'secondary'} size="small" sx={{ fontWeight: 600 }} />
           </Box>
         </Box>
 
@@ -93,7 +99,7 @@ export default function AdminDashboard() {
           {/* Admin links */}
           <Grid item xs={12} md={5}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>Розділи адмінки</Typography>
+              <Typography variant="h6" fontWeight={600} gutterBottom>{t('admin.sections', 'Розділи адмінки')}</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                 {adminLinks.map((link) => (
                   <Button key={link.to} variant="outlined" color={link.color} fullWidth onClick={() => navigate(link.to)}
@@ -113,8 +119,8 @@ export default function AdminDashboard() {
             <Grid item xs={12} md={7}>
               <Paper sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" fontWeight={600}>Нові звернення</Typography>
-                  <Button size="small" onClick={() => navigate('/admin/appeals')}>Всі</Button>
+                  <Typography variant="h6" fontWeight={600}>{t('admin.newAppeals', 'Нові звернення')}</Typography>
+                  <Button size="small" onClick={() => navigate('/admin/appeals')}>{t('common.all', 'Всі')}</Button>
                 </Box>
                 <List disablePadding>
                   {stats.recentAppeals.map((appeal, i) => (

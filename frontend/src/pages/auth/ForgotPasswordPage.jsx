@@ -5,9 +5,11 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { LocalHospital } from '@mui/icons-material';
 import { authApi } from '../../api/auth.api.js';
+import { useTranslation } from 'react-i18next';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const [step, setStep] = useState(1); // 1 = Запит, 2 = Код, 3 = Новий пароль
   
@@ -22,10 +24,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authApi.forgotPassword({ identifier });
-      toast.success('Код відправлено на email');
+      toast.success(t('toast.codeSent', 'Код відправлено на email'));
       setStep(2);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Помилка при створенні запиту');
+      toast.error(err.response?.data?.message ? t(`api.${err.response.data.message}`, err.response.data.message) : t('toast.requestError', 'Помилка при створенні запиту'));
     } finally {
       setLoading(false);
     }
@@ -36,10 +38,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authApi.verifyCode({ identifier, code, type: 'RESET_PASS' });
-      toast.success('Код валідний');
+      toast.success(t('toast.codeValid', 'Код валідний'));
       setStep(3);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Помилка верифікації');
+      toast.error(err.response?.data?.message ? t(`api.${err.response.data.message}`, err.response.data.message) : t('toast.verifyError', 'Помилка верифікації'));
     } finally {
       setLoading(false);
     }
@@ -50,10 +52,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await authApi.resetPassword({ identifier, code, newPassword });
-      toast.success('Пароль успішно змінено!');
+      toast.success(t('toast.passChanged', 'Пароль успішно змінено!'));
       navigate('/login');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Помилка зміни паролю');
+      toast.error(err.response?.data?.message ? t(`api.${err.response.data.message}`, err.response.data.message) : t('toast.passChangeError', 'Помилка зміни паролю'));
     } finally {
       setLoading(false);
     }
@@ -64,24 +66,24 @@ export default function ForgotPasswordPage() {
       <Box component="header" sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
         <Box component={RouterLink} to="/" sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'primary.main' }}>
           <LocalHospital sx={{ fontSize: 32 }} />
-          <Typography variant="h5" fontWeight={700}>Перечинська ЦРЛ</Typography>
+          <Typography variant="h5" fontWeight={700}>{t('common.appTitle')}</Typography>
         </Box>
       </Box>
 
       <Container maxWidth="xs" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', pb: 10 }}>
         <Paper elevation={0} sx={{ p: 4, width: '100%', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h5" fontWeight={700} textAlign="center" gutterBottom>
-            Відновлення паролю
+            {t('forgotPass.title', 'Відновлення паролю')}
           </Typography>
           
           {step === 1 && (
             <form onSubmit={handleRequest}>
               <Typography variant="body2" color="text.secondary" mb={2} textAlign="center">
-                Введіть ваш Email для отримання коду підтвердження.
+                {t('forgotPass.emailPrompt', 'Введіть ваш Email для отримання коду підтвердження.')}
               </Typography>
 
               <TextField
-                label="Електронна пошта"
+                label={t('loginPage.email', 'Електронна пошта')}
                 type="email"
                 required
                 fullWidth
@@ -90,7 +92,7 @@ export default function ForgotPasswordPage() {
                 sx={{ mb: 3 }}
               />
               <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}>
-                {loading ? <CircularProgress size={24} /> : 'Надіслати код'}
+                {loading ? <CircularProgress size={24} /> : t('profilePage.verifyCode', 'Надіслати код')}
               </Button>
             </form>
           )}
@@ -98,10 +100,10 @@ export default function ForgotPasswordPage() {
           {step === 2 && (
             <form onSubmit={handleVerify}>
               <Typography variant="body2" color="text.secondary" mb={3} textAlign="center">
-                Введіть 6-значний код, відправлений на {identifier}
+                {t('forgotPass.codePrompt', 'Введіть 6-значний код, відправлений на')} {identifier}
               </Typography>
               <TextField
-                label="Код підтвердження"
+                label={t('profilePage.codeStr', 'Код підтвердження')}
                 required
                 fullWidth
                 value={code}
@@ -110,7 +112,7 @@ export default function ForgotPasswordPage() {
                 inputProps={{ maxLength: 6 }}
               />
               <Button type="submit" variant="contained" fullWidth size="large" disabled={loading || code.length !== 6}>
-                {loading ? <CircularProgress size={24} /> : 'Перевірити код'}
+                {loading ? <CircularProgress size={24} /> : t('profilePage.verifyCode', 'Перевірити код')}
               </Button>
             </form>
           )}
@@ -118,10 +120,10 @@ export default function ForgotPasswordPage() {
           {step === 3 && (
             <form onSubmit={handleReset}>
               <Alert severity="success" sx={{ mb: 3 }}>
-                Код підтверджено. Введіть новий пароль.
+                {t('forgotPass.codeValidAndPass', 'Код підтверджено. Введіть новий пароль.')}
               </Alert>
               <TextField
-                label="Новий пароль"
+                label={t('profilePage.newPass', 'Новий пароль')}
                 type="password"
                 required
                 fullWidth
@@ -130,16 +132,16 @@ export default function ForgotPasswordPage() {
                 sx={{ mb: 3 }}
               />
               <Button type="submit" variant="contained" fullWidth size="large" disabled={loading || newPassword.length < 8}>
-                {loading ? <CircularProgress size={24} /> : 'Зберегти пароль'}
+                {loading ? <CircularProgress size={24} /> : t('profilePage.savePass', 'Зберегти пароль')}
               </Button>
             </form>
           )}
 
           <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              Згадали пароль?{' '}
+              {t('forgotPass.remembered', 'Згадали пароль? ')}
               <Box component={RouterLink} to="/login" sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none' }}>
-                Увійти
+                {t('common.login', 'Увійти')}
               </Box>
             </Typography>
           </Box>

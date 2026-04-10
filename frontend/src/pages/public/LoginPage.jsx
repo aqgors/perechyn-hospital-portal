@@ -9,15 +9,17 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../../store/authSlice.js';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-const schema = yup.object({
-  email: yup.string().email('Невірний email').required('Email є обов\'язковим'),
-  password: yup.string().required('Пароль є обов\'язковим'),
+const getSchema = (t) => yup.object({
+  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', 'Email є обов\'язковим')),
+  password: yup.string().required(t('validation.requiredPassword', 'Пароль є обов\'язковим')),
 });
 
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isLoading, error, isAuthenticated, user } = useSelector((s) => s.auth);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -32,7 +34,7 @@ export default function LoginPage() {
   }, [isAuthenticated, user, navigate, dispatch]);
 
   const { control, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(getSchema(t)),
     defaultValues: { email: '', password: '' },
   });
 
@@ -47,21 +49,21 @@ export default function LoginPage() {
             <Box sx={{ bgcolor: 'primary.main', width: 64, height: 64, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
               <LocalHospital sx={{ color: '#fff', fontSize: 36 }} />
             </Box>
-            <Typography variant="h5" fontWeight={700}>Вхід до системи</Typography>
-            <Typography variant="body2" color="text.secondary" mt={0.5}>Перечинська ЦРЛ — Вебпортал</Typography>
+            <Typography variant="h5" fontWeight={700}>{t('loginPage.title', 'Вхід до системи')}</Typography>
+            <Typography variant="body2" color="text.secondary" mt={0.5}>{t('common.appTitle')} — {t('common.appSubtitle')}</Typography>
           </Box>
 
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Controller name="email" control={control} render={({ field }) => (
-              <TextField {...field} label="Email" type="email" autoComplete="email" error={!!errors.email} helperText={errors.email?.message} />
+              <TextField {...field} label={t('loginPage.email', 'Email')} type="email" autoComplete="email" error={!!errors.email} helperText={errors.email?.message} />
             )} />
 
             <Controller name="password" control={control} render={({ field }) => (
               <TextField
                 {...field}
-                label="Пароль"
+                label={t('loginPage.password', 'Пароль')}
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 error={!!errors.password}
@@ -80,26 +82,26 @@ export default function LoginPage() {
 
             <Button type="submit" variant="contained" size="large" disabled={isLoading} fullWidth
               startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ py: 1.5, mt: 1 }}>
-              {isLoading ? 'Вхід...' : 'Увійти'}
+              {isLoading ? t('common.loading', 'Вхід...') : t('loginPage.submit', 'Увійти')}
             </Button>
 
             <Box sx={{ textAlign: 'right' }}>
               <Link component={RouterLink} to="/forgot-password" variant="body2" color="text.secondary">
-                Забули пароль?
+                {t('loginPage.forgotPassword', 'Забули пароль?')}
               </Link>
             </Box>
           </Box>
 
           <Divider sx={{ my: 3 }}>
-            <Typography variant="caption" color="text.secondary">або</Typography>
+            <Typography variant="caption" color="text.secondary">{t('common.or', 'або')}</Typography>
           </Divider>
 
           <Typography variant="body2" textAlign="center">
-            Немає акаунту?{' '}
-            <Link component={RouterLink} to="/register" fontWeight={600}>Зареєструватись</Link>
+            {t('loginPage.noAccount', 'Немає акаунту? ')}
+            <Link component={RouterLink} to="/register" fontWeight={600}>{t('common.register', 'Зареєструватись')}</Link>
           </Typography>
           <Typography variant="body2" textAlign="center" mt={1}>
-            <Link component={RouterLink} to="/" color="text.secondary">← Повернутись на головну</Link>
+            <Link component={RouterLink} to="/" color="text.secondary">{t('common.backToHome', '← Повернутись на головну')}</Link>
           </Typography>
         </Paper>
       </Container>

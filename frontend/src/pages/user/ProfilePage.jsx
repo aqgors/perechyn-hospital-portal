@@ -12,13 +12,21 @@ import Footer from '../../components/layout/Footer.jsx';
 import { authApi } from '../../api/auth.api.js';
 import { fetchMe } from '../../store/authSlice.js';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
-const ROLE_LABELS = { ADMIN: 'Адміністратор', DOCTOR: 'Лікар', USER: 'Пацієнт', REGISTRAR: 'Реєстратура' };
 const ROLE_COLORS = { ADMIN: 'error', DOCTOR: 'secondary', USER: 'primary', REGISTRAR: 'warning' };
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const { user } = useSelector((s) => s.auth);
+  const { t, i18n } = useTranslation();
+
+  const ROLE_LABELS = { 
+    ADMIN: t('common.admin', 'Адміністратор'), 
+    DOCTOR: t('common.doctor', 'Лікар'), 
+    USER: t('common.patient', 'Пацієнт'), 
+    REGISTRAR: t('common.registrar', 'Реєстратура') 
+  };
 
   // States
   const [saving, setSaving] = useState(false);
@@ -63,7 +71,7 @@ export default function ProfilePage() {
     try {
       await authApi.updateMe({ name: data.name, phone: data.phone });
       await dispatch(fetchMe());
-      toast.success('Профіль успішно оновлено');
+      toast.success(t('toast.profileUpdated', 'Профіль успішно оновлено'));
     } catch { /* handled by interceptor */ }
     setSaving(false);
   };
@@ -73,35 +81,35 @@ export default function ProfilePage() {
     setPassLoading(true);
     try {
       await authApi.forgotPassword({ identifier: user.email });
-      toast.success('Код підтвердження відправлено на ваш email');
+      toast.success(t('toast.codeSent', 'Код підтвердження відправлено на ваш email'));
       setPassStep(1);
     } catch {
-      toast.error('Не вдалося надіслати код. Спробуйте пізніше.');
+      toast.error(t('toast.codeSendError', 'Не вдалося надіслати код. Спробуйте пізніше.'));
     }
     setPassLoading(false);
   };
 
   const handleVerifyCode = async () => {
-    if (code.length !== 6) return toast.error('Введіть 6-значний код');
+    if (code.length !== 6) return toast.error(t('toast.enterCode', 'Введіть 6-значний код'));
     setPassLoading(true);
     try {
       await authApi.verifyCode({ identifier: user.email, code });
-      toast.success('Код підтверджено!');
+      toast.success(t('toast.codeVerified', 'Код підтверджено!'));
       setPassStep(2);
     } catch {
-      toast.error('Невірний або прострочений код');
+      toast.error(t('toast.invalidCode', 'Невірний або прострочений код'));
     }
     setPassLoading(false);
   };
 
   const handleResetPassword = async () => {
-    if (newPassword.length < 8) return toast.error('Пароль має містити щонайменше 8 символів');
-    if (newPassword !== confirmPassword) return toast.error('Паролі не співпадають');
+    if (newPassword.length < 8) return toast.error(t('toast.passMin', 'Пароль має містити щонайменше 8 символів'));
+    if (newPassword !== confirmPassword) return toast.error(t('toast.passNoMatch', 'Паролі не співпадають'));
 
     setPassLoading(true);
     try {
       await authApi.resetPassword({ identifier: user.email, code, newPassword });
-      toast.success('Пароль успішно змінено!');
+      toast.success(t('toast.passChanged', 'Пароль успішно змінено!'));
 
       // Reset flow
       setPassStep(0);
@@ -109,7 +117,7 @@ export default function ProfilePage() {
       setNewPassword('');
       setConfirmPassword('');
     } catch {
-      toast.error('Помилка при зміні паролю');
+      toast.error(t('toast.passChangeError', 'Помилка при зміні паролю'));
     }
     setPassLoading(false);
   };
@@ -121,7 +129,7 @@ export default function ProfilePage() {
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 6, flexGrow: 1 }}>
         <Typography variant="h4" fontWeight={800} gutterBottom sx={{ mb: 4 }}>
-          Особистий кабінет
+          {t('profilePage.title', 'Особистий кабінет')}
         </Typography>
 
         <Grid container spacing={4}>
@@ -145,7 +153,7 @@ export default function ProfilePage() {
               <Divider sx={{ my: 'auto' }} />
 
               <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
-                Користувач системи з {new Date(user?.createdAt).toLocaleDateString('uk-UA')}
+                {t('profilePage.joined', 'Користувач системи з')} {new Date(user?.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'uk-UA')}
               </Typography>
             </Paper>
           </Grid>
@@ -157,14 +165,14 @@ export default function ProfilePage() {
             <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
                 <Person color="primary" sx={{ fontSize: 28 }} />
-                <Typography variant="h6" fontWeight={700}>Персональні дані</Typography>
+                <Typography variant="h6" fontWeight={700}>{t('profilePage.personalData', 'Персональні дані')}</Typography>
               </Box>
 
               <Box component="form" onSubmit={profileForm.handleSubmit(onSaveProfile)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Controller name="name" control={profileForm.control} render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Повне ім'я"
+                    label={t('registerPage.name', "Повне ім'я")}
                     fullWidth
                     variant="outlined"
                   />
@@ -176,7 +184,7 @@ export default function ProfilePage() {
                     <Controller name="phone" control={profileForm.control} render={({ field }) => (
                       <TextField
                         {...field}
-                        label="Мобільний телефон"
+                        label={t('profilePage.phone', 'Мобільний телефон')}
                         onChange={(e) => handlePhoneChange(e, field)}
                         placeholder="+380"
                         fullWidth
@@ -186,7 +194,7 @@ export default function ProfilePage() {
                       />
                     )} />
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', ml: 1 }}>
-                      Додайте номер телефону, щоб лікар міг зв'язатися з вами
+                      {t('profilePage.phoneHint', "Додайте номер телефону, щоб лікар міг зв'язатися з вами")}
                     </Typography>
                   </Box>
                 )}
@@ -199,7 +207,7 @@ export default function ProfilePage() {
                   disabled={saving}
                   sx={{ alignSelf: 'flex-start', mt: 1, px: 4, py: 1.5, borderRadius: 3, fontWeight: 700 }}
                 >
-                  {saving ? 'Збереження...' : 'Зберегти дані'}
+                  {saving ? t('common.loading', 'Збереження...') : t('common.save', 'Зберегти дані')}
                 </Button>
               </Box>
             </Paper>
@@ -208,14 +216,14 @@ export default function ProfilePage() {
             <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
                 <Security color="warning" sx={{ fontSize: 28 }} />
-                <Typography variant="h6" fontWeight={700}>Безпека та пароль</Typography>
+                <Typography variant="h6" fontWeight={700}>{t('profilePage.security', 'Безпека та пароль')}</Typography>
               </Box>
 
               <Box sx={{ maxWidth: 500 }}>
                 {passStep === 0 && (
                   <Box>
                     <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                      Для зміни пароля ми надішлемо код підтвердження на вашу електронну пошту <b>{user.email}</b>.
+                      {t('profilePage.resetInfoPre', 'Для зміни пароля ми надішлемо код підтвердження на вашу електронну пошту ')} <b>{user.email}</b>.
                     </Alert>
                     <Button
                       onClick={handleRequestCode}
@@ -226,7 +234,7 @@ export default function ProfilePage() {
                       disabled={passLoading}
                       sx={{ borderRadius: 3, fontWeight: 700, px: 4 }}
                     >
-                      {passLoading ? 'Надсилання...' : 'Змінити пароль'}
+                      {passLoading ? t('profilePage.sending', 'Надсилання...') : t('profilePage.changePass', 'Змінити пароль')}
                     </Button>
                   </Box>
                 )}
@@ -234,17 +242,17 @@ export default function ProfilePage() {
                 {passStep === 1 && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Alert severity="success" sx={{ borderRadius: 2 }}>
-                      6-значний код відправлено на <b>{user.email}</b>
+                      {t('profilePage.codeSentTo')} <b>{user.email}</b>
                     </Alert>
                     <TextField
-                      label="Код підтвердження"
+                      label={t('profilePage.codeStr', "Код підтвердження")}
                       value={code}
                       onChange={e => setCode(e.target.value)}
                       inputProps={{ maxLength: 6 }}
                       fullWidth
                     />
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>Скасувати</Button>
+                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>{t('common.cancel', 'Скасувати')}</Button>
                       <Button
                         onClick={handleVerifyCode}
                         variant="contained"
@@ -252,7 +260,7 @@ export default function ProfilePage() {
                         disabled={passLoading || code.length !== 6}
                         sx={{ fontWeight: 700, borderRadius: 3, px: 4 }}
                       >
-                        {passLoading ? <CircularProgress size={20} /> : 'Перевірити код'}
+                        {passLoading ? <CircularProgress size={20} /> : t('profilePage.verifyCode', 'Перевірити код')}
                       </Button>
                     </Box>
                   </Box>
@@ -260,9 +268,9 @@ export default function ProfilePage() {
 
                 {passStep === 2 && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Alert severity="info" sx={{ borderRadius: 2 }}>Код підтверджено. Придумайте новий надійний пароль.</Alert>
+                    <Alert severity="info" sx={{ borderRadius: 2 }}>{t('profilePage.codeVerifiedAndPass', 'Код підтверджено. Придумайте новий надійний пароль.')}</Alert>
                     <TextField
-                      label="Новий пароль"
+                      label={t('profilePage.newPass', 'Новий пароль')}
                       type="password"
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
@@ -270,16 +278,16 @@ export default function ProfilePage() {
                       fullWidth
                     />
                     <TextField
-                      label="Підтвердження нового паролю"
+                      label={t('registerPage.confirm', 'Підтвердження паролю')}
                       type="password"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       error={confirmPassword.length > 0 && newPassword !== confirmPassword}
-                      helperText={confirmPassword.length > 0 && newPassword !== confirmPassword ? "Паролі не співпадають" : ""}
+                      helperText={confirmPassword.length > 0 && newPassword !== confirmPassword ? t('validation.noMatch', "Паролі не співпадають") : ""}
                       fullWidth
                     />
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>Скасувати</Button>
+                      <Button onClick={() => setPassStep(0)} disabled={passLoading} sx={{ fontWeight: 700 }}>{t('common.cancel', 'Скасувати')}</Button>
                       <Button
                         onClick={handleResetPassword}
                         variant="contained"
@@ -287,7 +295,7 @@ export default function ProfilePage() {
                         disabled={passLoading || newPassword.length < 8 || newPassword !== confirmPassword}
                         sx={{ fontWeight: 700, borderRadius: 3, px: 4 }}
                       >
-                        {passLoading ? <CircularProgress size={20} /> : 'Зберегти пароль'}
+                        {passLoading ? <CircularProgress size={20} /> : t('profilePage.savePass', 'Зберегти пароль')}
                       </Button>
                     </Box>
                   </Box>

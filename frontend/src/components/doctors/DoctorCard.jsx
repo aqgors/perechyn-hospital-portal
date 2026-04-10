@@ -119,7 +119,7 @@ export default function DoctorCard({ doctor, onBook, onEdit, onDelete }) {
                 onClick={() => onEdit(doctor)}
                 sx={{ borderRadius: 2, fontWeight: 700 }}
               >
-                Редагувати
+                {t('common.edit', 'Редагувати')}
               </Button>
               <Button 
                 variant="outlined" 
@@ -128,7 +128,7 @@ export default function DoctorCard({ doctor, onBook, onEdit, onDelete }) {
                 onClick={() => onDelete(doctor.id)}
                 sx={{ borderRadius: 2, fontWeight: 700 }}
               >
-                Видалити
+                {t('common.delete', 'Видалити')}
               </Button>
             </Box>
           ) : (

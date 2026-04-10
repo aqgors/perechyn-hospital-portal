@@ -14,13 +14,17 @@ import { StatusChip } from '../../components/common/StatusChip.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
-dayjs.locale('uk');
-
+import 'dayjs/locale/en';
+import { useTranslation } from 'react-i18next';
 export default function DashboardPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
   const { list: appeals, isLoading, meta } = useSelector((s) => s.appeals);
+  const { t, i18n } = useTranslation();
+
+  const currentLangCode = i18n.language === 'en' ? 'en' : 'uk';
+  dayjs.locale(currentLangCode);
 
   useEffect(() => {
     dispatch(fetchAppeals({ limit: 5 }));
@@ -31,10 +35,10 @@ export default function DashboardPage() {
   const doneCount     = appeals.filter((a) => a.status === 'DONE').length;
 
   const stats = [
-    { label: 'Всього звернень', value: meta.total,   icon: <Description />,  color: '#1565C0', bg: '#E3F2FD' },
-    { label: 'Нових',           value: newCount,      icon: <FiberNew />,      color: '#0288D1', bg: '#E1F5FE' },
-    { label: 'В обробці',       value: inProgCount,   icon: <HourglassEmpty />,color: '#F57C00', bg: '#FFF3E0' },
-    { label: 'Виконано',        value: doneCount,     icon: <CheckCircle />,  color: '#2E7D32', bg: '#E8F5E9' },
+    { label: t('dashboard.totalAppeals', 'Всього звернень'), value: meta.total,   icon: <Description />,  color: '#1565C0', bg: '#E3F2FD' },
+    { label: t('dashboard.newAppeals', 'Нових'),           value: newCount,      icon: <FiberNew />,      color: '#0288D1', bg: '#E1F5FE' },
+    { label: t('dashboard.inProgressAppeals', 'В обробці'),       value: inProgCount,   icon: <HourglassEmpty />,color: '#F57C00', bg: '#FFF3E0' },
+    { label: t('dashboard.doneAppeals', 'Виконано'),        value: doneCount,     icon: <CheckCircle />,  color: '#2E7D32', bg: '#E8F5E9' },
   ];
 
   return (
@@ -45,14 +49,14 @@ export default function DashboardPage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography variant="h4" fontWeight={700} gutterBottom>
-              Вітаємо, {user?.name?.split(' ')[0]}! 👋
+              {t('dashboard.greeting', 'Вітаємо, {{name}}! 👋', { name: user?.name?.split(' ')[0] })}
             </Typography>
             <Typography color="text.secondary">
-              {user?.role === 'ADMIN' ? 'Адміністратор' : 'Пацієнт'} · {dayjs().format('DD MMMM YYYY')}
+              {user?.role === 'ADMIN' ? t('common.admin') : t('common.patient')} · {dayjs().format('DD MMMM YYYY')}
             </Typography>
           </Box>
           <Button variant="contained" size="large" startIcon={<AddCircle />} onClick={() => navigate('/appeals/new')}>
-            Нове звернення
+            {t('common.newAppeal', 'Нове звернення')}
           </Button>
         </Box>
 
@@ -74,8 +78,8 @@ export default function DashboardPage() {
         {/* Recent appeals */}
         <Paper sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" fontWeight={600}>Останні звернення</Typography>
-            <Button size="small" onClick={() => navigate('/appeals')}>Переглянути всі</Button>
+            <Typography variant="h6" fontWeight={600}>{t('dashboard.recentAppeals', 'Останні звернення')}</Typography>
+            <Button size="small" onClick={() => navigate('/appeals')}>{t('dashboard.viewAll', 'Переглянути всі')}</Button>
           </Box>
 
           {isLoading ? (
@@ -83,9 +87,9 @@ export default function DashboardPage() {
           ) : appeals.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <Description sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
-              <Typography color="text.secondary" gutterBottom>У вас ще немає звернень</Typography>
+              <Typography color="text.secondary" gutterBottom>{t('dashboard.noRecentAppeals', 'У вас ще немає звернень')}</Typography>
               <Button variant="contained" onClick={() => navigate('/appeals/new')} startIcon={<AddCircle />} sx={{ mt: 1 }}>
-                Подати перше звернення
+                {t('dashboard.createFirstAppeal', 'Подати перше звернення')}
               </Button>
             </Box>
           ) : (

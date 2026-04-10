@@ -17,13 +17,13 @@ import specialtiesApi from '../../api/specialties.api.js';
 import { doctorsApi } from '../../api/doctors.api.js';
 import { appealsApi } from '../../api/appeals.api.js';
 
-const schema = yup.object({
-  title: yup.string().min(5, 'Мінімум 5 символів').max(200).required('Тема є обов\'язковою'),
-  description: yup.string().min(20, 'Мінімум 20 символів').required('Опис є обов\'язковим'),
-  specialtyId: yup.string().required('Спеціальність обов\'язкова'),
+const getSchema = (t) => yup.object({
+  title: yup.string().min(5, t('validation.min5', 'Мінімум 5 символів')).max(200).required(t('validation.requiredTitle', 'Тема є обов\'язковою')),
+  description: yup.string().min(20, t('validation.min20', 'Мінімум 20 символів')).required(t('validation.requiredDesc', 'Опис є обов\'язковим')),
+  specialtyId: yup.string().required(t('validation.requiredSpec', 'Спеціальність обов\'язкова')),
   doctorId: yup.string().nullable(),
-  appointmentDate: yup.date().required('Дата обов\'язкова'),
-  appointmentTime: yup.string().required('Будь ласка, оберіть час прийому'),
+  appointmentDate: yup.date().required(t('validation.requiredDate', 'Дата обов\'язкова')),
+  appointmentTime: yup.string().required(t('validation.requiredTime', 'Будь ласка, оберіть час прийому')),
 });
 
 const ALL_TIME_SLOTS = [
@@ -59,7 +59,7 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
   };
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(getSchema(t)),
     defaultValues: buildDefaults(initialData),
   });
 
@@ -158,7 +158,7 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                       {i18n.language === 'en' ? s.nameEN : s.nameUA}
                     </MenuItem>
                   ))
-                  : <MenuItem disabled>Завантаження...</MenuItem>
+                  : <MenuItem disabled>{t('common.loading', 'Завантаження...')}</MenuItem>
                 }
               </TextField>
             )} />
@@ -176,9 +176,8 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                 value={field.value || ''}
                 onChange={e => field.onChange(e.target.value || null)}
               >
-                {/* Empty option - no doctor */}
                 <MenuItem value="">
-                  <em>— Не вказано (буде призначено) —</em>
+                  <em>{t('appeals.noDoctorAssigned', '— Не вказано (буде призначено) —')}</em>
                 </MenuItem>
                 {filteredDoctors.length > 0
                   ? filteredDoctors.map(d => (
@@ -186,8 +185,8 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                   ))
                   : <MenuItem disabled>
                     {selectedSpecialty
-                      ? 'Лікарів не знайдено для цієї спеціальності'
-                      : 'Спочатку оберіть спеціальність'}
+                      ? t('appeals.noDoctorsForSpec', 'Лікарів не знайдено для цієї спеціальності')
+                      : t('appeals.chooseSpecFirst', 'Спочатку оберіть спеціальність')}
                   </MenuItem>
                 }
               </TextField>
@@ -241,7 +240,7 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                         color={isSelected ? 'primary' : 'default'}
                         variant={isSelected ? 'filled' : 'outlined'}
                         size="small"
-                        title={occupied ? 'Зайнятий' : past ? 'Час минув' : ''}
+                        title={occupied ? t('appeals.slotOccupied', 'Зайнятий') : past ? t('appeals.slotPast', 'Час минув') : ''}
                         sx={{
                           fontWeight: 700,
                           cursor: disabled ? 'not-allowed' : 'pointer',

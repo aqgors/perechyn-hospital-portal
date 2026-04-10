@@ -14,16 +14,18 @@ import specialtiesApi from '../../api/specialties.api.js';
 import { doctorsApi } from '../../api/doctors.api.js';
 import toast from 'react-hot-toast';
 import { StatusChip } from '../../components/common/StatusChip.jsx';
+import { useTranslation } from 'react-i18next';
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'Усі статуси' },
-  { value: 'NEW', label: 'Нові' },
-  { value: 'IN_PROGRESS', label: 'В обробці' },
-  { value: 'DONE', label: 'Виконані' },
-  { value: 'REJECTED', label: 'Відхилені' },
+const getStatusOptions = (t) => [
+  { value: '', label: t('doctor.allStatuses', 'Усі статуси') },
+  { value: 'NEW', label: t('appeals.statusNew', 'Нові') },
+  { value: 'IN_PROGRESS', label: t('appeals.statusInProgress', 'В обробці') },
+  { value: 'DONE', label: t('appeals.statusDone', 'Виконані') },
+  { value: 'REJECTED', label: t('appeals.statusRejected', 'Відхилені') },
 ];
 
 export default function RegistrarAppealsPage() {
+  const { t, i18n } = useTranslation();
   const [appeals, setAppeals] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -51,7 +53,7 @@ export default function RegistrarAppealsPage() {
       const { data } = await registrarApi.getAppeals(params);
       setAppeals(data.data || []);
     } catch {
-      toast.error('Не вдалося завантажити список звернень');
+      toast.error(t('toast.loadAppealsListError', 'Не вдалося завантажити список звернень'));
     }
     setLoading(false);
   };
@@ -63,7 +65,7 @@ export default function RegistrarAppealsPage() {
     ]).then(([specRes, docRes]) => {
       setSpecialties(specRes.data?.data || specRes.data || []);
       setDoctors(docRes.data?.data || docRes.data || []);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => { load(); }, [filterStatus, filterSpecialtyId]);
@@ -84,11 +86,11 @@ export default function RegistrarAppealsPage() {
         specialtyId: editSpecialtyId || null,
         doctorId: editDoctorId || null,
       });
-      toast.success('Звернення оновлено');
+      toast.success(t('toast.appealUpdated', 'Звернення оновлено'));
       setSelected(null);
       load();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Помилка оновлення');
+      toast.error(err.response?.data?.message ? t(`api.${err.response.data.message}`, err.response.data.message) : t('toast.updateError', 'Помилка оновлення'));
     }
     setSaving(false);
   };
@@ -103,37 +105,37 @@ export default function RegistrarAppealsPage() {
       <Navbar />
       <Container maxWidth="xl" sx={{ py: 4, flexGrow: 1 }}>
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" fontWeight={700}>Управління зверненнями</Typography>
-          <Typography color="text.secondary" mt={0.5}>Реєстратура: перегляд черги, призначення спеціальностей та лікарів</Typography>
+          <Typography variant="h4" fontWeight={700}>{t('admin.manageAppealsTitle', 'Управління зверненнями')}</Typography>
+          <Typography color="text.secondary" mt={0.5}>{t('admin.manageAppealsSub', 'Реєстратура')}</Typography>
         </Box>
 
         {/* Filters */}
         <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <FilterList color="action" fontSize="small" />
-            <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>Фільтри</Typography>
+            <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>{t('common.filters', 'Фільтри')}</Typography>
           </Box>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
-              <TextField fullWidth select label="Статус" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} size="small">
-                {STATUS_OPTIONS.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
+              <TextField fullWidth select label={t('common.status', 'Статус')} value={filterStatus} onChange={e => setFilterStatus(e.target.value)} size="small">
+                {getStatusOptions(t).map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
-              <TextField fullWidth select label="Спеціальність" value={filterSpecialtyId} onChange={e => setFilterSpecialtyId(e.target.value)} size="small">
-                <MenuItem value="">Усі спеціальності</MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{s.nameUA}</MenuItem>)}
+              <TextField fullWidth select label={t('common.specialty', 'Спеціальність')} value={filterSpecialtyId} onChange={e => setFilterSpecialtyId(e.target.value)} size="small">
+                <MenuItem value="">{t('admin.allSpecs', 'Усі спеціальності')}</MenuItem>
+                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth size="small"
-                label="Пошук пацієнта або теми"
+                label={t('doctor.searchLabel', 'Пошук пацієнта або теми')}
                 value={filterSearch}
                 onChange={e => setFilterSearch(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') load(); }}
                 InputProps={{ startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment> }}
-                placeholder="Enter — пошук..."
+                placeholder={t('doctor.searchPlaceholder', 'Enter — пошук...')}
               />
             </Grid>
           </Grid>
@@ -146,20 +148,20 @@ export default function RegistrarAppealsPage() {
             <Table>
               <TableHead sx={{ bgcolor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Дата</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Пацієнт</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Тема</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Спеціальність</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Лікар</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Статус</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>Дії</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('common.date', 'Дата')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('common.patient', 'Пацієнт')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('doctor.appealTheme', 'Тема')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('common.specialty', 'Спеціальність')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('common.doctor', 'Лікар')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('common.status', 'Статус')}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>{t('common.actions', 'Дії')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {appeals.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 6, color: 'text.secondary' }}>
-                      Звернень не знайдено
+                      {t('appeals.notFound', 'Звернень не знайдено')}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -167,7 +169,7 @@ export default function RegistrarAppealsPage() {
                     <TableRow key={item.id} hover>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>
-                          {item.appointmentDate ? new Date(item.appointmentDate).toLocaleDateString('uk-UA') : '—'}
+                          {item.appointmentDate ? new Date(item.appointmentDate).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'uk-UA') : '—'}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">{item.appointmentTime || ''}</Typography>
                       </TableCell>
@@ -176,11 +178,11 @@ export default function RegistrarAppealsPage() {
                         <Typography variant="caption" color="text.secondary">{item.user?.phone || item.user?.email}</Typography>
                       </TableCell>
                       <TableCell>{item.title}</TableCell>
-                      <TableCell>{item.specialty?.nameUA || <Chip label="Не призначено" size="small" />}</TableCell>
-                      <TableCell>{item.doctor?.name || <Chip label="Не призначено" size="small" />}</TableCell>
+                      <TableCell>{i18n.language === 'en' ? item.specialty?.nameEN : item.specialty?.nameUA || <Chip label={t('registrar.unassigned', 'Не призначено')} size="small" />}</TableCell>
+                      <TableCell>{item.doctor?.name || <Chip label={t('registrar.unassigned', 'Не призначено')} size="small" />}</TableCell>
                       <TableCell><StatusChip status={item.status} /></TableCell>
                       <TableCell align="center">
-                        <IconButton color="primary" size="small" onClick={() => openEdit(item)} title="Редагувати">
+                        <IconButton color="primary" size="small" onClick={() => openEdit(item)} title={t('common.edit', 'Редагувати')}>
                           <Edit fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -196,7 +198,7 @@ export default function RegistrarAppealsPage() {
 
       {/* Edit Dialog */}
       <Dialog open={!!selected} onClose={() => setSelected(null)} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={700}>Редагування звернення</DialogTitle>
+        <DialogTitle fontWeight={700}>{t('appeals.editAppeal', 'Редагування звернення')}</DialogTitle>
         {selected && (
           <DialogContent dividers>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 0.5 }}>
@@ -204,35 +206,35 @@ export default function RegistrarAppealsPage() {
                 <strong>{selected.user?.name}</strong> · {selected.title}
               </Typography>
 
-              <TextField select label="Статус" value={editStatus} onChange={e => setEditStatus(e.target.value)} fullWidth>
-                <MenuItem value="NEW">Нове</MenuItem>
-                <MenuItem value="IN_PROGRESS">В обробці</MenuItem>
-                <MenuItem value="DONE">Виконане</MenuItem>
-                <MenuItem value="REJECTED">Відхилене</MenuItem>
+              <TextField select label={t('common.status', 'Статус')} value={editStatus} onChange={e => setEditStatus(e.target.value)} fullWidth>
+                <MenuItem value="NEW">{t('appeals.statusNew', 'Нове')}</MenuItem>
+                <MenuItem value="IN_PROGRESS">{t('appeals.statusInProgress', 'В обробці')}</MenuItem>
+                <MenuItem value="DONE">{t('appeals.statusDone', 'Виконане')}</MenuItem>
+                <MenuItem value="REJECTED">{t('appeals.statusRejected', 'Відхилене')}</MenuItem>
               </TextField>
 
-              <TextField select label="Спеціальність" value={editSpecialtyId} onChange={e => { setEditSpecialtyId(e.target.value); setEditDoctorId(''); }} fullWidth>
-                <MenuItem value="">— Не призначено —</MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{s.nameUA}</MenuItem>)}
+              <TextField select label={t('common.specialty', 'Спеціальність')} value={editSpecialtyId} onChange={e => { setEditSpecialtyId(e.target.value); setEditDoctorId(''); }} fullWidth>
+                <MenuItem value="">{t('registrar.unassignedDash', '— Не призначено —')}</MenuItem>
+                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
 
-              <TextField select label="Лікар" value={editDoctorId} onChange={e => setEditDoctorId(e.target.value)} fullWidth>
-                <MenuItem value="">— Не призначено —</MenuItem>
+              <TextField select label={t('common.doctor', 'Лікар')} value={editDoctorId} onChange={e => setEditDoctorId(e.target.value)} fullWidth>
+                <MenuItem value="">{t('registrar.unassignedDash', '— Не призначено —')}</MenuItem>
                 {filteredDoctors.map(d => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
               </TextField>
               {editSpecialtyId && filteredDoctors.length === 0 && (
                 <Typography variant="caption" color="warning.main">
-                  У цій спеціальності поки немає зареєстрованих лікарів
+                  {t('registrar.noDoctorsForSpec', 'У цій спеціальності поки немає зареєстрованих лікарів')}
                 </Typography>
               )}
             </Box>
           </DialogContent>
         )}
         <DialogActions sx={{ p: 2, px: 3 }}>
-          <Button onClick={() => setSelected(null)} color="inherit">Скасувати</Button>
+          <Button onClick={() => setSelected(null)} color="inherit">{t('common.cancel', 'Скасувати')}</Button>
           <Button variant="contained" onClick={handleSave} disabled={saving}
             startIcon={saving ? <CircularProgress size={16} /> : null}>
-            {saving ? 'Збереження...' : 'Зберегти'}
+            {saving ? t('common.saving', 'Збереження...') : t('common.save', 'Зберегти')}
           </Button>
         </DialogActions>
       </Dialog>

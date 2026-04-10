@@ -7,7 +7,7 @@ import { markMessagesAsRead } from '../../store/appealsSlice.js';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
-dayjs.locale('uk');
+import 'dayjs/locale/en';
 
 /**
  * Permission rules:
@@ -17,8 +17,11 @@ dayjs.locale('uk');
  * REJECTED    → Delete only
  */
 export default function AppealCard({ appeal, onEdit, onDelete }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
+
+  const currentLangCode = i18n.language === 'en' ? 'en' : 'uk';
+  dayjs.locale(currentLangCode);
 
   const canEdit   = appeal.status === 'NEW';
   const canDelete = appeal.status === 'NEW' || appeal.status === 'DONE' || appeal.status === 'REJECTED';
@@ -74,10 +77,10 @@ export default function AppealCard({ appeal, onEdit, onDelete }) {
             <LocalHospital fontSize="small" color="secondary" />
             <Box>
               <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">
-                Спеціальність
+                {t('appealsPage.specialty', 'Спеціальність')}
               </Typography>
               <Typography variant="body2" fontWeight={700}>
-                {appeal.specialty?.nameUA}
+                {i18n.language === 'en' ? appeal.specialty?.nameEN : appeal.specialty?.nameUA}
               </Typography>
             </Box>
           </Box>
@@ -88,13 +91,13 @@ export default function AppealCard({ appeal, onEdit, onDelete }) {
           <Box sx={{ p: 1.5, bgcolor: 'rgba(56, 189, 248, 0.1)', borderLeft: '4px solid #38BDF8', borderRadius: 1, mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
               <Typography variant="caption" color="primary.dark" fontWeight={700} display="block">
-                Повідомлення від лікаря:
+                {t('appeals.doctorMessage', 'Повідомлення від лікаря:')}
               </Typography>
               {unreadCount > 0 && (
                 <Chip 
                   size="small" 
                   color="error" 
-                  label={`${unreadCount} ${unreadCount === 1 ? 'нове' : 'нових'}`} 
+                  label={`${unreadCount} ${unreadCount === 1 ? t('appeals.newOne', 'нове') : t('appeals.newMany', 'нових')}`} 
                   onClick={() => dispatch(markMessagesAsRead(appeal.id))}
                   sx={{ cursor: 'pointer', fontWeight: 'bold' }} 
                 />

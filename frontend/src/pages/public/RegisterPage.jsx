@@ -11,25 +11,27 @@ import { LocalHospital, Visibility, VisibilityOff } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../../store/authSlice.js';
+import { useTranslation } from 'react-i18next';
 
-const schema = yup.object({
-  name: yup.string().min(2, 'Мінімум 2 символи').required("Ім'я є обов'язковим"),
-  email: yup.string().email('Невірний email').required('Email є обов\'язковим'),
+const getSchema = (t) => yup.object({
+  name: yup.string().min(2, t('validation.min2', 'Мінімум 2 символи')).required(t('validation.requiredName', "Ім'я є обов'язковим")),
+  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', 'Email є обов\'язковим')),
   password: yup
     .string()
-    .min(8, 'Мінімум 8 символів')
-    .matches(/[A-Z]/, 'Потрібна хоча б одна велика літера')
-    .matches(/[0-9]/, 'Потрібна хоча б одна цифра')
-    .required('Пароль є обов\'язковим'),
+    .min(8, t('validation.min8', 'Мінімум 8 символів'))
+    .matches(/[A-Z]/, t('validation.uppercase', 'Потрібна хоча б одна велика літера'))
+    .matches(/[0-9]/, t('validation.number', 'Потрібна хоча б одна цифра'))
+    .required(t('validation.requiredPassword', 'Пароль є обов\'язковим')),
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref('password')], 'Паролі не співпадають')
-    .required('Підтвердження паролю є обов\'язковим'),
+    .oneOf([yup.ref('password')], t('validation.noMatch', 'Паролі не співпадають'))
+    .required(t('validation.requiredConfirm', 'Підтвердження паролю є обов\'язковим')),
 });
 
 export default function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isLoading, error, isAuthenticated } = useSelector((s) => s.auth);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,7 +41,7 @@ export default function RegisterPage() {
   }, [isAuthenticated, navigate, dispatch]);
 
   const { control, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(getSchema(t)),
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   });
 
@@ -53,25 +55,25 @@ export default function RegisterPage() {
             <Box sx={{ bgcolor: 'secondary.main', width: 64, height: 64, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
               <LocalHospital sx={{ color: '#fff', fontSize: 36 }} />
             </Box>
-            <Typography variant="h5" fontWeight={700}>Реєстрація</Typography>
-            <Typography variant="body2" color="text.secondary" mt={0.5}>Перечинська ЦРЛ — Вебпортал</Typography>
+            <Typography variant="h5" fontWeight={700}>{t('registerPage.title', 'Реєстрація')}</Typography>
+            <Typography variant="body2" color="text.secondary" mt={0.5}>{t('common.appTitle')} — {t('common.appSubtitle')}</Typography>
           </Box>
 
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Controller name="name" control={control} render={({ field }) => (
-              <TextField {...field} label="Повне ім'я" placeholder="Іваненко Іван Іванович" error={!!errors.name} helperText={errors.name?.message} />
+              <TextField {...field} label={t('registerPage.name', "Повне ім'я")} placeholder="Іваненко Іван Іванович" error={!!errors.name} helperText={errors.name?.message} />
             )} />
 
             <Controller name="email" control={control} render={({ field }) => (
-              <TextField {...field} label="Email" type="email" autoComplete="email" error={!!errors.email} helperText={errors.email?.message} />
+              <TextField {...field} label={t('loginPage.email', 'Email')} type="email" autoComplete="email" error={!!errors.email} helperText={errors.email?.message} />
             )} />
 
             <Controller name="password" control={control} render={({ field }) => (
               <TextField
-                {...field} label="Пароль" type={showPassword ? 'text' : 'password'} autoComplete="new-password"
-                error={!!errors.password} helperText={errors.password?.message || 'Мін. 8 символів, велика літера та цифра'}
+                {...field} label={t('loginPage.password', 'Пароль')} type={showPassword ? 'text' : 'password'} autoComplete="new-password"
+                error={!!errors.password} helperText={errors.password?.message || t('validation.passwordCriteria', 'Мін. 8 символів, велика літера та цифра')}
                 InputProps={{ endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
@@ -83,22 +85,22 @@ export default function RegisterPage() {
             )} />
 
             <Controller name="confirmPassword" control={control} render={({ field }) => (
-              <TextField {...field} label="Підтвердження паролю" type={showPassword ? 'text' : 'password'} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />
+              <TextField {...field} label={t('registerPage.confirm', 'Підтвердження паролю')} type={showPassword ? 'text' : 'password'} error={!!errors.confirmPassword} helperText={errors.confirmPassword?.message} />
             )} />
 
             <Button type="submit" variant="contained" color="secondary" size="large" disabled={isLoading} fullWidth
               startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null} sx={{ py: 1.5, mt: 1 }}>
-              {isLoading ? 'Реєстрація...' : 'Зареєструватись'}
+              {isLoading ? t('common.loading', 'Реєстрація...') : t('common.register', 'Зареєструватись')}
             </Button>
           </Box>
 
           <Box sx={{ textAlign: 'center', mt: 3 }}>
             <Typography variant="body2">
-              Вже є акаунт?{' '}
-              <Link component={RouterLink} to="/login" fontWeight={600}>Увійти</Link>
+              {t('registerPage.hasAccount', 'Вже є акаунт? ')}
+              <Link component={RouterLink} to="/login" fontWeight={600}>{t('common.login', 'Увійти')}</Link>
             </Typography>
             <Typography variant="body2" mt={1}>
-              <Link component={RouterLink} to="/" color="text.secondary">← Головна</Link>
+              <Link component={RouterLink} to="/" color="text.secondary">{t('common.backToHome', '← Головна')}</Link>
             </Typography>
           </Box>
         </Paper>

@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { appealsApi } from '../api/appeals.api.js';
 import toast from 'react-hot-toast';
+import i18n from '../i18n.js';
 
 export const fetchAppeals = createAsyncThunk('appeals/fetchAll', async (params, { rejectWithValue }) => {
   try {
@@ -24,20 +25,20 @@ export const fetchUnreadCount = createAsyncThunk('appeals/fetchUnreadCount', asy
 export const updateAppeal = createAsyncThunk('appeals/update', async ({ id, data: appealData }, { rejectWithValue }) => {
   try {
     const { data } = await appealsApi.update(id, appealData);
-    toast.success('Звернення оновлено!');
+    toast.success(i18n.t('toast.appealUpdated', 'Звернення оновлено!'));
     return data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Помилка оновлення звернення');
+    return rejectWithValue(err.response?.data?.message ? i18n.t(`api.${err.response.data.message}`, err.response.data.message) : i18n.t('toast.appealUpdateError', 'Помилка оновлення звернення'));
   }
 });
 
 export const deleteAppeal = createAsyncThunk('appeals/delete', async (id, { rejectWithValue }) => {
   try {
     await appealsApi.delete(id);
-    toast.success('Звернення видалено');
+    toast.success(i18n.t('toast.appealDeleted', 'Звернення видалено'));
     return id;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Помилка видалення звернення');
+    return rejectWithValue(err.response?.data?.message ? i18n.t(`api.${err.response.data.message}`, err.response.data.message) : i18n.t('toast.appealDeleteError', 'Помилка видалення звернення'));
   }
 });
 
@@ -53,10 +54,10 @@ export const fetchAppealById = createAsyncThunk('appeals/fetchById', async (id, 
 export const createAppeal = createAsyncThunk('appeals/create', async (appealData, { rejectWithValue }) => {
   try {
     const { data } = await appealsApi.create(appealData);
-    toast.success('Звернення успішно подано!');
+    toast.success(i18n.t('toast.appealCreated', 'Звернення успішно подано!'));
     return data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Помилка створення звернення');
+    return rejectWithValue(err.response?.data?.message ? i18n.t(`api.${err.response.data.message}`, err.response.data.message) : i18n.t('toast.appealCreateError', 'Помилка створення звернення'));
   }
 });
 

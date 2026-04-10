@@ -1,9 +1,11 @@
 // src/components/layout/Footer.jsx
 import { Box, Container, Typography, Link, Divider, useTheme } from '@mui/material';
 import { LocalHospital, Phone, Email, LocationOn } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const isDark = theme.palette.mode === 'dark';
 
   return (
@@ -23,15 +25,15 @@ export default function Footer() {
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <LocalHospital sx={{ fontSize: 28, color: 'primary.main' }} />
-              <Typography variant="h6" fontWeight={700} color="text.primary">Перечинська ЦРЛ</Typography>
+              <Typography variant="h6" fontWeight={700} color="text.primary">{t('common.appTitle', 'Перечинська ЦРЛ')}</Typography>
             </Box>
             <Typography variant="body2" sx={{ maxWidth: 300, lineHeight: 1.7 }}>
-              Комунальне некомерційне підприємство «Перечинська центральна районна лікарня» Перечинської районної ради.
+              {t('footer.description', 'Комунальне некомерційне підприємство «Перечинська центральна районна лікарня» Перечинської районної ради.')}
             </Typography>
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom color="text.primary">Контакти</Typography>
+            <Typography variant="subtitle2" fontWeight={700} gutterBottom color="text.primary">{t('footer.contacts', 'Контакти')}</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Phone fontSize="small" color="primary" />
@@ -45,14 +47,18 @@ export default function Footer() {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                 <LocationOn fontSize="small" color="primary" sx={{ mt: 0.2 }} />
-                <Typography variant="body2">89100, Закарпатська обл., м. Перечин, вул. Лікарняна, 1</Typography>
+                <Typography variant="body2">{t('footer.address', '89100, Закарпатська обл., м. Перечин, вул. Лікарняна, 1')}</Typography>
               </Box>
             </Box>
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom color="text.primary">Посилання</Typography>
-            {['Портал державних послуг', 'МОЗ України', 'Закарпатська ОДА'].map((label) => (
+            <Typography variant="subtitle2" fontWeight={700} gutterBottom color="text.primary">{t('footer.links', 'Посилання')}</Typography>
+            {[
+              t('footer.linkPortal', 'Портал державних послуг'), 
+              t('footer.linkMoz', 'МОЗ України'), 
+              t('footer.linkOda', 'Закарпатська ОДА')
+            ].map((label) => (
               <Typography key={label} variant="body2" sx={{ mb: 0.5 }}>{label}</Typography>
             ))}
           </Box>
@@ -62,10 +68,10 @@ export default function Footer() {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Typography variant="caption">
-            © {new Date().getFullYear()} Перечинська ЦРЛ. Усі права захищені.
+            © {new Date().getFullYear()} {t('footer.copyright', 'Перечинська ЦРЛ. Усі права захищені.')}
           </Typography>
           <Typography variant="caption">
-            Розроблено для автоматизації роботи лікарні
+            {t('footer.developedFor', 'Розроблено для автоматизації роботи лікарні')}
           </Typography>
         </Box>
       </Container>
