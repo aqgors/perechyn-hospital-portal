@@ -27,6 +27,11 @@ export async function buildApp() {
           : undefined,
     },
   });
+  
+  // Логування вхідних запитів (для дебагу 405/404)
+  fastify.addHook('onRequest', async (request) => {
+    fastify.log.info({ method: request.method, url: request.url }, 'Incoming request');
+  });
 
   // Реєстрація плагінів
   await fastify.register(swaggerPlugin);

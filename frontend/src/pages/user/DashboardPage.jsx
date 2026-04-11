@@ -30,9 +30,9 @@ export default function DashboardPage() {
     dispatch(fetchAppeals({ limit: 5 }));
   }, [dispatch]);
 
-  const newCount      = appeals.filter((a) => a.status === 'NEW').length;
-  const inProgCount   = appeals.filter((a) => a.status === 'IN_PROGRESS').length;
-  const doneCount     = appeals.filter((a) => a.status === 'DONE').length;
+  const newCount      = (Array.isArray(appeals) ? appeals : []).filter((a) => a.status === 'NEW').length;
+  const inProgCount   = (Array.isArray(appeals) ? appeals : []).filter((a) => a.status === 'IN_PROGRESS').length;
+  const doneCount     = (Array.isArray(appeals) ? appeals : []).filter((a) => a.status === 'DONE').length;
 
   const stats = [
     { label: t('dashboard.totalAppeals', 'Всього звернень'), value: meta.total,   icon: <Description />,  color: '#1565C0', bg: '#E3F2FD' },
@@ -62,7 +62,7 @@ export default function DashboardPage() {
 
         {/* Stats */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          {stats.map((s) => (
+          {(Array.isArray(stats) ? stats : []).map((s) => (
             <Grid item xs={6} md={3} key={s.label}>
               <Paper sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: s.bg, color: s.color, width: 48, height: 48 }}>{s.icon}</Avatar>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
           {isLoading ? (
             <LoadingSpinner />
-          ) : appeals.length === 0 ? (
+          ) : (Array.isArray(appeals) ? appeals : []).length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <Description sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
               <Typography color="text.secondary" gutterBottom>{t('dashboard.noRecentAppeals', 'У вас ще немає звернень')}</Typography>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
             </Box>
           ) : (
             <List disablePadding>
-              {appeals.map((appeal, i) => (
+              {(Array.isArray(appeals) ? appeals : []).map((appeal, i) => (
                 <Box key={appeal.id}>
                   {i > 0 && <Divider />}
                   <ListItem sx={{ px: 0, py: 1.5 }}>

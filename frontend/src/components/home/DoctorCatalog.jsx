@@ -71,7 +71,7 @@ export default function DoctorCatalog() {
               }}
             >
               <Tab label={t('doctorCatalog.allDoctors')} value="all" />
-              {specialties.map(s => (
+              {(Array.isArray(specialties) ? specialties : []).map(s => (
                 <Tab key={s.id} label={s[`name${currentLang}`] || s.nameUA} value={s.id} />
               ))}
             </Tabs>
@@ -85,8 +85,8 @@ export default function DoctorCatalog() {
                 <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 4 }} />
               </Grid>
             ))
-          ) : filteredDoctors.length > 0 ? (
-            filteredDoctors.map((doctor) => (
+          ) : (Array.isArray(filteredDoctors) ? filteredDoctors : []).length > 0 ? (
+            (Array.isArray(filteredDoctors) ? filteredDoctors : []).map((doctor) => (
               <Grid item xs={12} sm={6} md={3} key={doctor.id} sx={{ display: 'flex' }}>
                 <Fade in timeout={500}>
                   <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>

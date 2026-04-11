@@ -1,10 +1,10 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: perechyn_hospital_db
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_USER: ${DB_USER:-hospital_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-hospital_pass}
@@ -14,10 +14,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-hospital_user} -d ${DB_NAME:-perechyn_hospital}']
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hospital_user} -d ${DB_NAME:-perechyn_hospital}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - hospital_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: perechyn_hospital_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-hospital_user}:${DB_PASSWORD:-hospital_pass}@postgres:5432/${DB_NAME:-perechyn_hospital}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - PORT=3001
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hospital_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: perechyn_hospital_frontend
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+    networks:
+      - hospital_network
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -32,6 +73,12 @@ services:
       - postgres
     profiles:
       - dev
+    networks:
+      - hospital_network
+
+networks:
+  hospital_network:
+    driver: bridge
 
 volumes:
   postgres_data:

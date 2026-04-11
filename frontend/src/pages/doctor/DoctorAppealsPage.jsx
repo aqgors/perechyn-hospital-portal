@@ -139,14 +139,14 @@ export default function DoctorAppealsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {appeals.length === 0 ? (
+                {(Array.isArray(appeals) ? appeals : []).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                       {t('doctor.noActiveAppeals', 'Немає активних звернень за обраними фільтрами')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  appeals.map((item) => (
+                  (Array.isArray(appeals) ? appeals : []).map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>

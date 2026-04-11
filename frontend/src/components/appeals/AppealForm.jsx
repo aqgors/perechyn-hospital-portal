@@ -72,10 +72,11 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
   useEffect(() => {
     specialtiesApi.getAll().then(res => {
       const list = res.data?.data || res.data || [];
-      const unique = Array.from(new Map(list.map(item => [item.id, item])).values());
+      const safeList = Array.isArray(list) ? list : [];
+      const unique = Array.from(new Map(safeList.map(item => [item.id, item])).values());
       setSpecialties(unique);
     }).catch(console.error);
-    doctorsApi.getDoctors().then(res => setDoctors(res.data || [])).catch(console.error);
+    doctorsApi.getDoctors().then(res => setDoctors(Array.isArray(res.data) ? res.data : [])).catch(console.error);
   }, []);
 
   // Filter doctors by specialty
@@ -117,9 +118,9 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
   };
 
   const availableSlots = useMemo(() =>
-    ALL_TIME_SLOTS.map(slot => ({
+    (Array.isArray(ALL_TIME_SLOTS) ? ALL_TIME_SLOTS : []).map(slot => ({
       slot,
-      occupied: occupiedSlots.includes(slot),
+      occupied: (Array.isArray(occupiedSlots) ? occupiedSlots : []).includes(slot),
       past: isSlotPast(slot),
     })),
     [occupiedSlots, selectedDate]
@@ -152,8 +153,8 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                 helperText={errors.specialtyId?.message}
                 value={field.value || ''}
               >
-                {specialties.length > 0
-                  ? specialties.map(s => (
+                {(Array.isArray(specialties) ? specialties : []).length > 0
+                  ? (Array.isArray(specialties) ? specialties : []).map(s => (
                     <MenuItem key={s.id} value={s.id}>
                       {i18n.language === 'en' ? s.nameEN : s.nameUA}
                     </MenuItem>
@@ -179,8 +180,8 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                 <MenuItem value="">
                   <em>{t('appeals.noDoctorAssigned', '— Не вказано (буде призначено) —')}</em>
                 </MenuItem>
-                {filteredDoctors.length > 0
-                  ? filteredDoctors.map(d => (
+                {(Array.isArray(filteredDoctors) ? filteredDoctors : []).length > 0
+                  ? (Array.isArray(filteredDoctors) ? filteredDoctors : []).map(d => (
                     <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
                   ))
                   : <MenuItem disabled>
@@ -228,7 +229,7 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
-                  {availableSlots.map(({ slot, occupied, past }) => {
+                  {(Array.isArray(availableSlots) ? availableSlots : []).map(({ slot, occupied, past }) => {
                     const disabled = occupied || past;
                     const isSelected = selectedTime === slot;
                     return (

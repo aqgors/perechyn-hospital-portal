@@ -88,22 +88,26 @@ const appealsSlice = createSlice({
       .addCase(fetchAppeals.pending, (state) => { state.isLoading = true; })
       .addCase(fetchAppeals.fulfilled, (state, { payload }) => {
         state.isLoading = false;
-        state.list = payload.data;
-        state.meta = payload.meta;
+        state.list = Array.isArray(payload.data) ? payload.data : [];
+        state.meta = payload.meta || { total: 0, page: 1, limit: 10, pages: 1 };
       })
       .addCase(fetchAppeals.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.error = payload;
+        state.list = []; // Clear list on error to prevent mapping issues
       })
       .addCase(createAppeal.fulfilled, (state, { payload }) => {
+        if (!Array.isArray(state.list)) state.list = [];
         state.list.unshift(payload);
       })
       .addCase(updateAppeal.fulfilled, (state, { payload }) => {
+        if (!Array.isArray(state.list)) state.list = [];
         const index = state.list.findIndex(a => a.id === payload.id);
         if (index !== -1) state.list[index] = payload;
         if (state.current?.id === payload.id) state.current = payload;
       })
       .addCase(deleteAppeal.fulfilled, (state, { payload: id }) => {
+        if (!Array.isArray(state.list)) state.list = [];
         state.list = state.list.filter(a => a.id !== id);
         if (state.current?.id === id) state.current = null;
       })
@@ -112,8 +116,9 @@ const appealsSlice = createSlice({
       })
       .addCase(markMessagesAsRead.fulfilled, (state, { payload: id }) => {
         let readCount = 0;
+        if (!Array.isArray(state.list)) state.list = [];
         const index = state.list.findIndex(a => a.id === id);
-        if (index !== -1 && state.list[index].messages) {
+        if (index !== -1 && Array.isArray(state.list[index].messages)) {
           state.list[index].messages.forEach(m => {
             if (!m.isRead) {
               m.isRead = true;
@@ -121,7 +126,7 @@ const appealsSlice = createSlice({
             }
           });
         }
-        if (state.current?.id === id && state.current.messages) {
+        if (state.current?.id === id && Array.isArray(state.current.messages)) {
           state.current.messages.forEach(m => {
             if (!m.isRead) m.isRead = true;
           });

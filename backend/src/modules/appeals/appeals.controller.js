@@ -37,7 +37,8 @@ export async function getMyAppeals(request, reply) {
       prisma.request.count({ where }),
     ]);
 
-    return reply.send({ data, meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } });
+    const safeData = Array.isArray(data) ? data : [];
+    return reply.send({ data: safeData, meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } });
   } catch (error) {
     console.error('[GEt_MY_APPEALS_ERROR]:', error);
     return reply.code(500).send({ statusCode: 500, message: 'Помилка при отриманні списку звернень' });
@@ -199,7 +200,8 @@ export async function getOccupiedSlots(request, reply) {
       select: { appointmentTime: true },
     });
 
-    const slots = items.map((i) => i.appointmentTime).filter(Boolean);
+    const safeItems = Array.isArray(items) ? items : [];
+    const slots = safeItems.map((i) => i.appointmentTime).filter(Boolean);
     return reply.send({ occupied: slots });
   } catch (error) {
     console.error('[GET_OCCUPIED_SLOTS_ERROR]:', error);

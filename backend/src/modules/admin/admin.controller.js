@@ -26,7 +26,9 @@ export async function getAllUsers(request, reply) {
     prisma.user.count({ where }),
   ]);
 
-  return reply.send({ data: users, meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } });
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  return reply.send({ data: safeUsers, meta: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } });
 }
 
 export async function updateUser(request, reply) {

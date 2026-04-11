@@ -28,7 +28,13 @@ const processQueue = (error, token = null) => {
 };
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Normalize paginated list responses
+    if (response.data && response.data.meta && !Array.isArray(response.data.data)) {
+      response.data.data = [];
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

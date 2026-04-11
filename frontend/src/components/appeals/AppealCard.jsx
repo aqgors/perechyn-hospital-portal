@@ -25,7 +25,7 @@ export default function AppealCard({ appeal, onEdit, onDelete }) {
 
   const canEdit   = appeal.status === 'NEW';
   const canDelete = appeal.status === 'NEW' || appeal.status === 'DONE' || appeal.status === 'REJECTED';
-  const unreadCount = appeal.messages?.filter(m => !m.isRead).length || 0;
+  const unreadCount = (Array.isArray(appeal.messages) ? appeal.messages : []).filter(m => !m.isRead).length || 0;
 
   return (
     <Card sx={{
@@ -105,7 +105,7 @@ export default function AppealCard({ appeal, onEdit, onDelete }) {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {appeal.messages?.map((msg) => (
+              {(Array.isArray(appeal.messages) ? appeal.messages : []).map((msg) => (
                 <Box key={msg.id} sx={{ p: 1, bgcolor: msg.isRead ? 'transparent' : 'rgba(255,255,255,0.7)', borderRadius: 1 }}>
                   <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
                     {dayjs(msg.createdAt).format('DD.MM.YY, HH:mm')} {msg.sender?.name ? `- ${msg.sender.name}` : ''}

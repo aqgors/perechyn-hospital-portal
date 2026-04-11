@@ -10,9 +10,11 @@ datasource db {
 
 enum Role {
   USER
+  PATIENT
   ADMIN
   DOCTOR
   REGISTRAR
+  REGISTRATOR
 }
 
 enum RequestStatus {
@@ -28,7 +30,7 @@ model User {
   password        String
   name            String
   phone           String?
-  role            Role      @default(USER)
+  role            Role      @default(PATIENT)
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt      @map("updated_at")
 

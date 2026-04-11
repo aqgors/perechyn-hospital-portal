@@ -35,7 +35,7 @@ export default function Statistics() {
     );
   }
 
-  const statusData = stats
+  const statusData = stats && stats.requests && stats.requests.byStatus
     ? Object.entries(stats.requests.byStatus).map(([key, value]) => ({
         name: STATUS_LABELS[key] || key,
         value,
@@ -76,7 +76,7 @@ export default function Statistics() {
                 <PieChart>
                   <Pie data={statusData} cx="50%" cy="50%" outerRadius={110} dataKey="value"
                     label={({ name, value }) => `${name}: ${value}`} labelLine>
-                    {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    {(Array.isArray(statusData) ? statusData : []).map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -95,7 +95,7 @@ export default function Statistics() {
                   <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Bar dataKey="value" name={t('common.count', 'Кількість')} radius={[8, 8, 0, 0]}>
-                    {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    {(Array.isArray(statusData) ? statusData : []).map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

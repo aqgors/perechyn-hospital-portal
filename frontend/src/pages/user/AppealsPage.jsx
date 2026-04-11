@@ -141,7 +141,7 @@ export default function AppealsPage() {
         {/* Content */}
         {isLoading ? (
           <LoadingSpinner />
-        ) : appeals?.length === 0 ? (
+        ) : (Array.isArray(appeals) ? appeals : []).length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 12 }}>
             <Typography variant="h5" color="text.secondary" gutterBottom fontWeight={600}>
               {status ? t('appeals.notFoundStatus', `Немає звернень зі статусом "${STATUSES.find(s => s.value === status)?.label}"`) : t('appeals.notFound', 'Звернень не знайдено')}
@@ -156,7 +156,7 @@ export default function AppealsPage() {
         ) : (
           <>
             <Grid container spacing={3}>
-              {appeals?.map((appeal) => (
+              {(Array.isArray(appeals) ? appeals : []).map((appeal) => (
                 <Grid item xs={12} sm={6} md={4} key={appeal.id}>
                   <AppealCard appeal={appeal} onEdit={setEditingAppeal} onDelete={setDeletingAppealId} />
                 </Grid>

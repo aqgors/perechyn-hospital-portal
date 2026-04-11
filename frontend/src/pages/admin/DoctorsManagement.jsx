@@ -130,7 +130,7 @@ export default function DoctorsManagement() {
           <LoadingSpinner />
         ) : (
           <Grid container spacing={3}>
-            {filteredDoctors.map(doctor => (
+            {(Array.isArray(filteredDoctors) ? filteredDoctors : []).map(doctor => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={doctor.id}>
                 <DoctorCard 
                   doctor={doctor} 
@@ -139,7 +139,7 @@ export default function DoctorsManagement() {
                 />
               </Grid>
             ))}
-            {filteredDoctors.length === 0 && (
+            {(Array.isArray(filteredDoctors) ? filteredDoctors : []).length === 0 && (
               <Grid item xs={12}>
                 <Box textAlign="center" py={8}>
                   <Typography variant="h6" color="text.secondary">{t('admin.doctorsNotFound', 'Лікарів не знайдено')}</Typography>
@@ -161,7 +161,7 @@ export default function DoctorsManagement() {
               
               <TextField select label={t('common.specialty', 'Спеціальність')} value={specialtyId} onChange={(e) => setSpecialtyId(e.target.value)} fullWidth>
                 <MenuItem value=""><em>{t('admin.notSelected', 'Не обрано')}</em></MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
+                {(Array.isArray(specialties) ? specialties : []).map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
               
               <TextField label={t('common.photoUrlLabel', 'Посилання на фото (Photo URL)')} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth helperText={t('common.photoUrlHelper', 'Додайте пряме посилання на зображення (jpg, png)')} />

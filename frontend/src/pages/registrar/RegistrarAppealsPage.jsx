@@ -124,7 +124,7 @@ export default function RegistrarAppealsPage() {
             <Grid item xs={12} sm={4}>
               <TextField fullWidth select label={t('common.specialty', 'Спеціальність')} value={filterSpecialtyId} onChange={e => setFilterSpecialtyId(e.target.value)} size="small">
                 <MenuItem value="">{t('admin.allSpecs', 'Усі спеціальності')}</MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
+                {(Array.isArray(specialties) ? specialties : []).map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -158,14 +158,14 @@ export default function RegistrarAppealsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {appeals.length === 0 ? (
+                {(Array.isArray(appeals) ? appeals : []).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 6, color: 'text.secondary' }}>
                       {t('appeals.notFound', 'Звернень не знайдено')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  appeals.map(item => (
+                  (Array.isArray(appeals) ? appeals : []).map(item => (
                     <TableRow key={item.id} hover>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>
@@ -215,12 +215,12 @@ export default function RegistrarAppealsPage() {
 
               <TextField select label={t('common.specialty', 'Спеціальність')} value={editSpecialtyId} onChange={e => { setEditSpecialtyId(e.target.value); setEditDoctorId(''); }} fullWidth>
                 <MenuItem value="">{t('registrar.unassignedDash', '— Не призначено —')}</MenuItem>
-                {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
+                {(Array.isArray(specialties) ? specialties : []).map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
               </TextField>
 
               <TextField select label={t('common.doctor', 'Лікар')} value={editDoctorId} onChange={e => setEditDoctorId(e.target.value)} fullWidth>
                 <MenuItem value="">{t('registrar.unassignedDash', '— Не призначено —')}</MenuItem>
-                {filteredDoctors.map(d => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
+                {(Array.isArray(filteredDoctors) ? filteredDoctors : []).map(d => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
               </TextField>
               {editSpecialtyId && filteredDoctors.length === 0 && (
                 <Typography variant="caption" color="warning.main">

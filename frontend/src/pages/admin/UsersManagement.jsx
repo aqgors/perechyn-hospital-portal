@@ -128,7 +128,7 @@ export default function UsersManagement() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map((user) => (
+                  {(Array.isArray(users) ? users : []).map((user) => (
                     <TableRow key={user.id} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -147,7 +147,7 @@ export default function UsersManagement() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {users.length === 0 && (
+                  {(Array.isArray(users) ? users : []).length === 0 && (
                     <TableRow><TableCell colSpan={5} sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>{t('admin.noUsersFound', 'Користувачів не знайдено')}</TableCell></TableRow>
                   )}
                 </TableBody>
@@ -189,7 +189,7 @@ export default function UsersManagement() {
                     error={Boolean(formError && !specialtyId)}
                     helperText={formError && !specialtyId ? formError : ''}
                   >
-                    {specialties.map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
+                    {(Array.isArray(specialties) ? specialties : []).map(s => <MenuItem key={s.id} value={s.id}>{i18n.language === 'en' ? s.nameEN : s.nameUA}</MenuItem>)}
                   </TextField>
                   <TextField label="Photo URL" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} fullWidth />
                   <TextField label={t('admin.docBioUA', 'Біографія (UKR)')} multiline rows={3} value={bioUA} onChange={(e) => setBioUA(e.target.value)} fullWidth />

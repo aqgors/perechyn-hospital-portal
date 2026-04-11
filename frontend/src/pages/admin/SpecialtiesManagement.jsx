@@ -116,14 +116,14 @@ export default function SpecialtiesManagement() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {specialties.length === 0 ? (
+                  {(Array.isArray(specialties) ? specialties : []).length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.secondary' }}>
                         {t('admin.noSpecialtiesYet', 'Спеціальностей ще немає. Додайте першу!')}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    specialties.map((spec, i) => (
+                    (Array.isArray(specialties) ? specialties : []).map((spec, i) => (
                       <TableRow key={spec.id} hover>
                         <TableCell sx={{ color: 'text.disabled', fontSize: 13 }}>{i + 1}</TableCell>
                         <TableCell>
