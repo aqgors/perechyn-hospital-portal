@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Ім\'я повинно мати мінімум 2 символи').max(100),
+  name: z.string().min(2, "Ім'я повинно мати мінімум 2 символи").max(100),
   email: z.string().email('Неправильний формат email'),
   password: z
     .string()
@@ -13,7 +13,7 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string().email('Неправильний формат email'),
-  password: z.string().min(1, 'Пароль є обов\'язковим'),
+  password: z.string().min(1, "Пароль є обов'язковим"),
 });
 
 export const refreshSchema = z.object({

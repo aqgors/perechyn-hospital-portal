@@ -26,5 +26,5 @@ export async function connectDatabase() {
 
 export async function disconnectDatabase() {
   await prisma.$disconnect();
-  console.log('🔌 З\'єднання з PostgreSQL закрито');
+  console.log("🔌 З'єднання з PostgreSQL закрито");
 }

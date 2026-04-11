@@ -47,10 +47,8 @@ export async function updateUser(request, reply) {
   // Validate DOCTOR requires specialtyId
   const targetRole = role || (await prisma.user.findUnique({ where: { id }, select: { role: true } }))?.role;
   if (targetRole === 'DOCTOR' && role === 'DOCTOR' && !specialtyId) {
-    return reply.code(400).send({
-      statusCode: 400,
-      error: 'Bad Request',
-      message: 'При призначенні ролі DOCTOR обов\'язково вкажіть спеціальність лікаря',
+    return reply.status(400).send({
+      message: "При призначенні ролі DOCTOR обов'язково вкажіть спеціальність лікаря",
     });
   }
 

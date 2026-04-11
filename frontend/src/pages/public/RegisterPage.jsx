@@ -15,17 +15,17 @@ import { useTranslation } from 'react-i18next';
 
 const getSchema = (t) => yup.object({
   name: yup.string().min(2, t('validation.min2', 'Мінімум 2 символи')).required(t('validation.requiredName', "Ім'я є обов'язковим")),
-  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', 'Email є обов\'язковим')),
+  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', "Email є обов'язковим")),
   password: yup
     .string()
     .min(8, t('validation.min8', 'Мінімум 8 символів'))
     .matches(/[A-Z]/, t('validation.uppercase', 'Потрібна хоча б одна велика літера'))
     .matches(/[0-9]/, t('validation.number', 'Потрібна хоча б одна цифра'))
-    .required(t('validation.requiredPassword', 'Пароль є обов\'язковим')),
+    .required(t('validation.requiredPassword', "Пароль є обов'язковим")),
   confirmPassword: yup
     .string()
     .oneOf([yup.ref('password')], t('validation.noMatch', 'Паролі не співпадають'))
-    .required(t('validation.requiredConfirm', 'Підтвердження паролю є обов\'язковим')),
+    .required(t('validation.requiredConfirm', "Підтвердження паролю є обов'язковим")),
 });
 
 export default function RegisterPage() {
@@ -74,13 +74,15 @@ export default function RegisterPage() {
               <TextField
                 {...field} label={t('loginPage.password', 'Пароль')} type={showPassword ? 'text' : 'password'} autoComplete="new-password"
                 error={!!errors.password} helperText={errors.password?.message || t('validation.passwordCriteria', 'Мін. 8 символів, велика літера та цифра')}
-                InputProps={{ endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                )}}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             )} />
 

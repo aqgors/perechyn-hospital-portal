@@ -68,7 +68,7 @@ export default function UsersManagement() {
   const handleSave = async () => {
     // Validate: DOCTOR requires specialtyId
     if (newRole === 'DOCTOR' && !specialtyId) {
-      setFormError('Для ролі Лікар обов\'язково виберіть спеціальність лікаря');
+      setFormError("Для ролі Лікар обов'язково виберіть спеціальність лікаря");
       return;
     }
     setSaving(true);

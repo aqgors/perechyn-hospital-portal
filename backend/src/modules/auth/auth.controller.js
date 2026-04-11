@@ -93,8 +93,8 @@ export async function forgotPassword(request, reply) {
   try {
     const { identifier } = request.body;
     
-    if (!identifier || typeof identifier !== 'string') {
-      return reply.code(400).send({ message: 'Електронна пошта є обов\'язковою' });
+    if (!identifier) {
+      return reply.code(400).send({ message: "Електронна пошта є обов'язковою" });
     }
 
     const email = identifier.trim().toLowerCase();

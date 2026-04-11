@@ -38,7 +38,7 @@ export const specialtiesController = {
   create: async (request, reply) => {
     const { nameUA, nameEN } = request.body;
     if (!nameUA || !nameEN) {
-      return reply.status(400).send({ message: 'Назви спеціалізації (UA та EN) є обов\'язковими' });
+      return reply.status(400).send({ message: "Назви спеціалізації (UA та EN) є обов'язковими" });
     }
     try {
       const specialty = await prisma.specialty.create({

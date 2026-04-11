@@ -17,5 +17,5 @@ RUN npx prisma generate
 
 EXPOSE 3001
 
-# Command runs migrations first, then starts the server
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# Command runs migrations first, seeds default data, then starts the server
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed && npm start"]

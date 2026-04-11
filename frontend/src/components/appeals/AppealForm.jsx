@@ -18,11 +18,11 @@ import { doctorsApi } from '../../api/doctors.api.js';
 import { appealsApi } from '../../api/appeals.api.js';
 
 const getSchema = (t) => yup.object({
-  title: yup.string().min(5, t('validation.min5', 'Мінімум 5 символів')).max(200).required(t('validation.requiredTitle', 'Тема є обов\'язковою')),
-  description: yup.string().min(20, t('validation.min20', 'Мінімум 20 символів')).required(t('validation.requiredDesc', 'Опис є обов\'язковим')),
-  specialtyId: yup.string().required(t('validation.requiredSpec', 'Спеціальність обов\'язкова')),
+  title: yup.string().min(5, t('validation.min5', 'Мінімум 5 символів')).max(200).required(t('validation.requiredTitle', "Тема є обов'язковою")),
+  description: yup.string().min(20, t('validation.min20', 'Мінімум 20 символів')).required(t('validation.requiredDesc', "Опис є обов'язковим")),
+  specialtyId: yup.string().required(t('validation.requiredSpec', "Спеціальність обов'язкова")),
   doctorId: yup.string().nullable(),
-  appointmentDate: yup.date().required(t('validation.requiredDate', 'Дата обов\'язкова')),
+  appointmentDate: yup.date().required(t('validation.requiredDate', "Дата обов'язкова")),
   appointmentTime: yup.string().required(t('validation.requiredTime', 'Будь ласка, оберіть час прийому')),
 });
 
@@ -170,7 +170,7 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                 {...field}
                 select
                 fullWidth
-                label={t('newAppealPage.formDoctor', 'Лікар (необов\'язково)')}
+                label={t('newAppealPage.formDoctor', "Лікар (необов'язково)")}
                 error={!!errors.doctorId}
                 helperText={errors.doctorId?.message}
                 disabled={!selectedSpecialty}

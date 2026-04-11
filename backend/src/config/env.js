@@ -7,7 +7,7 @@ config();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(4000),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL є обов\'язковим'),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL є обов'язковим"),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET повинен мати мінімум 16 символів'),
   JWT_EXPIRES_IN: z.string().default('1d'),
   JWT_REFRESH_SECRET: z.string().min(16, 'JWT_REFRESH_SECRET повинен мати мінімум 16 символів'),

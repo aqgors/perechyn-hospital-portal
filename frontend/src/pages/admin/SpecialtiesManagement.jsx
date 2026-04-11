@@ -55,7 +55,7 @@ export default function SpecialtiesManagement() {
 
   const handleSave = async () => {
     if (!form.nameUA.trim() || !form.nameEN.trim()) {
-      setFormError(t('admin.bothNamesRequired', 'Обидві назви (UA та EN) є обов\'язковими'));
+      setFormError(t('admin.bothNamesRequired', "Обидві назви (UA та EN) є обов'язковими"));
       return;
     }
     setSaving(true);

@@ -12,8 +12,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const getSchema = (t) => yup.object({
-  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', 'Email є обов\'язковим')),
-  password: yup.string().required(t('validation.requiredPassword', 'Пароль є обов\'язковим')),
+  email: yup.string().email(t('validation.invalidEmail', 'Невірний email')).required(t('validation.requiredEmail', "Email є обов'язковим")),
+  password: yup.string().required(t('validation.requiredPassword', "Пароль є обов'язковим")),
 });
 
 export default function LoginPage() {

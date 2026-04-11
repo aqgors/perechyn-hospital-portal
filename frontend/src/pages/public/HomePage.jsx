@@ -15,7 +15,7 @@ const getFeatures = (t) => [
   { icon: <Description sx={{ fontSize: 32, color: '#1E88E5' }} />, title: t('homePage.feature1Title', 'Реєстрація звернень'), desc: t('homePage.feature1Desc', 'Подавайте звернення онлайн 24/7 без необхідності відвідувати лікарню особисто') },
   { icon: <Speed sx={{ fontSize: 32, color: '#00897B' }} />, title: t('homePage.feature2Title', 'Швидка обробка'), desc: t('homePage.feature2Desc', 'Ваші звернення опрацьовуються оперативно. Відстежуйте статус у реальному часі') },
   { icon: <Security sx={{ fontSize: 32, color: '#F57C00' }} />, title: t('homePage.feature3Title', 'Безпека даних'), desc: t('homePage.feature3Desc', 'Ваші персональні дані захищені сучасними стандартами безпеки та шифрування') },
-  { icon: <PhoneInTalk sx={{ fontSize: 32, color: '#D32F2F' }} />, title: t('homePage.feature4Title', 'Зворотній зв\'язок'), desc: t('homePage.feature4Desc', 'Отримуйте відповіді від лікарів та адміністрації безпосередньо на порталі') },
+  { icon: <PhoneInTalk sx={{ fontSize: 32, color: '#D32F2F' }} />, title: t('homePage.feature4Title', "Зворотній зв'язок"), desc: t('homePage.feature4Desc', 'Отримуйте відповіді від лікарів та адміністрації безпосередньо на порталі') },
 ];
 
 export default function HomePage() {
