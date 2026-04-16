@@ -12,7 +12,7 @@ import {
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { uk, enUS } from 'date-fns/locale';
-import { format, isToday, isBefore, parse } from 'date-fns';
+import { format, isToday, isBefore, parse, startOfDay } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { createAppeal } from '../../store/appealsSlice.js';
@@ -31,7 +31,8 @@ export default function AppointmentDialog({ open, onClose, doctor }) {
   const { t, i18n } = useTranslation();
   const { isLoading } = useSelector((s) => s.appeals);
 
-  const [date, setDate] = useState(new Date());
+  // Start date at midnight local time to avoid time-component pollution
+  const [date, setDate] = useState(() => startOfDay(new Date()));
   const [selectedTime, setSelectedTime] = useState('');
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -69,7 +70,7 @@ export default function AppointmentDialog({ open, onClose, doctor }) {
   );
 
   const handleClose = () => {
-    setDate(new Date());
+    setDate(startOfDay(new Date()));
     setSelectedTime('');
     setMessage('');
     setIsSuccess(false);
@@ -83,12 +84,16 @@ export default function AppointmentDialog({ open, onClose, doctor }) {
       return;
     }
 
+    const baseDescription = `Запис через каталог лікарів до лікаря ${doctor.name}.`;
     const payload = {
       title: `Запис до лікаря: ${doctor.name}`,
-      description: message || 'Запис через каталог лікарів',
+      description: message.trim().length > 0
+        ? `${baseDescription} Причина: ${message.trim()}`
+        : baseDescription,
       specialtyId: doctor.specialtyId,
       doctorId: doctor.id,
-      appointmentDate: date.toISOString(),
+      // Send date as YYYY-MM-DD to avoid UTC timezone drift when backend parses it
+      appointmentDate: format(date, 'yyyy-MM-dd'),
       appointmentTime: selectedTime,
     };
 
@@ -157,7 +162,7 @@ export default function AppointmentDialog({ open, onClose, doctor }) {
                       <CircularProgress size={24} />
                     </Box>
                   ) : (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                       {slotsWithState.map(({ slot, occupied, past }) => {
                         const disabled = occupied || past;
                         const isSelected = selectedTime === slot;
@@ -165,13 +170,28 @@ export default function AppointmentDialog({ open, onClose, doctor }) {
                           <Chip
                             key={slot}
                             label={slot}
-                            onClick={() => !disabled && setSelectedTime(slot)}
-                            disabled={disabled}
+                            onClick={() => { if (!disabled) setSelectedTime(slot); }}
                             color={isSelected ? 'primary' : 'default'}
                             variant={isSelected ? 'filled' : 'outlined'}
                             size="small"
-                            title={occupied ? 'Зайнятий' : past ? 'Час минув' : 'Вільний'}
-                            sx={{ fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '0.75rem' }}
+                            title={occupied ? t('appeals.slotOccupied', 'Зайнятий') : past ? t('appeals.slotPast', 'Час минув') : t('appeals.slotFree', 'Вільний')}
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              cursor: disabled ? 'not-allowed' : 'pointer',
+                              pointerEvents: disabled ? 'none' : 'auto',
+                              opacity: disabled ? 0.38 : 1,
+                              bgcolor: occupied
+                                ? 'error.dark'
+                                : isSelected
+                                  ? undefined
+                                  : undefined,
+                              color: occupied ? '#fff !important' : undefined,
+                              textDecoration: occupied ? 'line-through' : 'none',
+                              '&:hover': {
+                                bgcolor: disabled ? undefined : undefined,
+                              }
+                            }}
                           />
                         );
                       })}

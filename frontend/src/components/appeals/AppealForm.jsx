@@ -126,9 +126,20 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
     [occupiedSlots, selectedDate]
   );
 
+  // Normalize date to YYYY-MM-DD before submitting, to avoid UTC timezone drift
+  const handleFormSubmit = (data) => {
+    const normalized = {
+      ...data,
+      appointmentDate: data.appointmentDate
+        ? format(data.appointmentDate, 'yyyy-MM-dd')
+        : undefined,
+    };
+    onSubmit(normalized);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={dateLocale}>
-      <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Title */}
         <Controller name="title" control={control} render={({ field }) => (
           <TextField
@@ -236,16 +247,20 @@ export default function AppealForm({ onSubmit, isLoading, initialData }) {
                       <Chip
                         key={slot}
                         label={slot}
-                        onClick={() => !disabled && setValue('appointmentTime', slot)}
-                        disabled={disabled}
+                        onClick={() => { if (!disabled) setValue('appointmentTime', slot); }}
                         color={isSelected ? 'primary' : 'default'}
                         variant={isSelected ? 'filled' : 'outlined'}
                         size="small"
                         title={occupied ? t('appeals.slotOccupied', 'Зайнятий') : past ? t('appeals.slotPast', 'Час минув') : ''}
                         sx={{
                           fontWeight: 700,
-                          cursor: disabled ? 'not-allowed' : 'pointer',
                           fontSize: '0.75rem',
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                          pointerEvents: disabled ? 'none' : 'auto',
+                          opacity: disabled ? 0.38 : 1,
+                          bgcolor: occupied ? 'error.dark' : undefined,
+                          color: occupied ? '#fff !important' : undefined,
+                          textDecoration: occupied ? 'line-through' : 'none',
                         }}
                       />
                     );

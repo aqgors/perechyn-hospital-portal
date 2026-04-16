@@ -1,6 +1,25 @@
 import { prisma } from '../../config/database.js';
 import { createAppealSchema, updateAppealSchema } from './appeals.schema.js';
-import { startOfDay, endOfDay } from 'date-fns';
+
+/**
+ * Normalize any date value to UTC midnight (strips hours/minutes/seconds).
+ * This prevents timezone-related bugs where e.g. "Apr 19 01:00 UTC+3"
+ * becomes "Apr 18 22:00 UTC" and gets stored on the wrong day.
+ *
+ * Usage: toUTCMidnight('2026-04-19')  → Date(2026-04-19T00:00:00.000Z)
+ *        toUTCMidnight(dateObject)    → Date(2026-04-19T00:00:00.000Z)
+ */
+function toUTCMidnight(dateVal) {
+  const d = new Date(dateVal);
+  // Use UTC year/month/date so that any "2026-04-19" string or local Date
+  // is interpreted correctly without timezone shifting
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+function toUTCEndOfDay(dateVal) {
+  const d = new Date(dateVal);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+}
 
 const SELECT = {
   id: true,
@@ -49,19 +68,27 @@ export async function createAppeal(request, reply) {
   try {
     const parsed = createAppealSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ statusCode: 400, error: 'Validation Error', message: parsed.error.errors[0].message });
+      const firstError = parsed.error.errors[0];
+      console.error('[CREATE_APPEAL_VALIDATION_ERROR]:', JSON.stringify(parsed.error.errors));
+      console.error('[CREATE_APPEAL_BODY_RECEIVED]:', JSON.stringify(request.body));
+      return reply.code(400).send({
+        statusCode: 400,
+        error: 'Validation Error',
+        message: firstError.message,
+        field: firstError.path?.join('.'),
+      });
     }
 
     const { doctorId, appointmentDate, appointmentTime, ...rest } = parsed.data;
 
-    // Validate that the slot is actually free if date and time are provided
-    if (appointmentDate && appointmentTime) {
-      const startDate = startOfDay(new Date(appointmentDate));
-      const endDate = endOfDay(new Date(appointmentDate));
+    // Normalize to UTC midnight to avoid timezone-related date shifting bugs
+    const normalizedDate = appointmentDate ? toUTCMidnight(appointmentDate) : null;
 
+    // Validate that the slot is actually free if date and time are provided
+    if (normalizedDate && appointmentTime) {
       const existingSlot = await prisma.request.findFirst({
         where: {
-          appointmentDate: { gte: startDate, lte: endDate },
+          appointmentDate: { gte: normalizedDate, lte: toUTCEndOfDay(normalizedDate) },
           appointmentTime,
           ...(doctorId ? { doctorId } : { specialtyId: rest.specialtyId }),
           status: { in: ['NEW', 'IN_PROGRESS'] },
@@ -77,7 +104,7 @@ export async function createAppeal(request, reply) {
       data: { 
         ...rest, 
         doctorId: doctorId || null,
-        appointmentDate: appointmentDate ? new Date(appointmentDate) : null,
+        appointmentDate: normalizedDate,   // always UTC midnight
         appointmentTime,
         userId: request.user.id, 
         status: 'NEW' 
@@ -125,14 +152,13 @@ export async function updateAppeal(request, reply) {
 
     const { doctorId, appointmentDate, appointmentTime, ...rest } = parsed.data;
 
-    if (appointmentDate && appointmentTime) {
-      const startDate = startOfDay(new Date(appointmentDate));
-      const endDate = endOfDay(new Date(appointmentDate));
+    const normalizedDate = appointmentDate ? toUTCMidnight(appointmentDate) : null;
 
+    if (normalizedDate && appointmentTime) {
       const existingSlot = await prisma.request.findFirst({
         where: {
           id: { not: id },
-          appointmentDate: { gte: startDate, lte: endDate },
+          appointmentDate: { gte: normalizedDate, lte: toUTCEndOfDay(normalizedDate) },
           appointmentTime,
           ...(doctorId ? { doctorId } : { specialtyId: rest.specialtyId || existing.specialtyId }),
           status: { in: ['NEW', 'IN_PROGRESS'] },
@@ -149,7 +175,7 @@ export async function updateAppeal(request, reply) {
       data: {
         ...rest,
         ...(doctorId !== undefined && { doctorId: doctorId || null }),
-        ...(appointmentDate && { appointmentDate: new Date(appointmentDate) }),
+        ...(normalizedDate && { appointmentDate: normalizedDate }),  // always UTC midnight
         ...(appointmentTime && { appointmentTime })
       },
       select: SELECT,
@@ -188,8 +214,9 @@ export async function getOccupiedSlots(request, reply) {
       return reply.code(400).send({ message: 'Необхідно вказати дату та (лікарID або спеціальністьID)' });
     }
 
-    const startDate = startOfDay(new Date(date));
-    const endDate = endOfDay(new Date(date));
+    // Parse the YYYY-MM-DD query param strictly as UTC to avoid timezone drift
+    const startDate = toUTCMidnight(date + 'T00:00:00.000Z');
+    const endDate   = toUTCEndOfDay(date + 'T00:00:00.000Z');
 
     const items = await prisma.request.findMany({
       where: {

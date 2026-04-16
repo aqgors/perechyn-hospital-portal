@@ -101,7 +101,7 @@ export default function HomePage() {
               { value: '2500+', label: t('homePage.stat1Label', 'Пацієнтів щороку') },
               { value: '50+', label: t('homePage.stat2Label', 'Лікарів та медперсоналу') },
               { value: '24/7', label: t('homePage.stat3Label', 'Надання допомоги 24/7') },
-              { value: '< 48 год', label: t('homePage.stat4Label', 'Час обробки звернень') },
+              { value: '< 48', label: t('homePage.stat4Label', 'Час обробки звернень') },
             ].map((stat) => (
               <Grid item xs={6} md={3} key={stat.label}>
                 <Box sx={{ textAlign: 'center', py: 1 }}>

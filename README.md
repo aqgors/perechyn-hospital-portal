@@ -1,144 +1,108 @@
-# 🏥 Вебпортал Перечинської ЦРЛ
+# 🏥 Perechyn Hospital Portal | Вебпортал Перечинської ЦРЛ
 
-Офіційний вебпортал Перечинської центральної районної лікарні з системою реєстрації звернень громадян.
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![Fastify](https://img.shields.io/badge/Fastify-4.x-000000?logo=fastify&logoColor=white)](https://www.fastify.io/)
+[![Prisma](https://img.shields.io/badge/Prisma-5.x-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![i18n](https://img.shields.io/badge/i18n-UA%20%7C%20EN-blue)](https://www.i18next.com/)
 
-## Технічний стек
+Сучасний повнофункціональний вебпортал для **Комунального некомерційного підприємства «Перечинська центральна районна лікарня»**. Проєкт поєднує в собі зручність для пацієнтів та потужні інструменти для медичного персоналу.
 
-| Компонент | Технологія |
-|-----------|------------|
-| Backend API | Fastify 4.x |
-| База даних | PostgreSQL 16 + Prisma ORM |
-| Frontend | React 18 + Vite |
-| UI бібліотека | Material-UI (MUI) v5 |
-| Авторизація | JWT (access + refresh tokens) |
-| Контейнери | Docker + docker-compose |
+---
 
-## Швидкий старт
+## ✨ Ключові особливості
 
-### 1. Вимоги
-- Node.js 20+
-- Docker + Docker Compose (або PostgreSQL 16 локально)
-- npm 10+
+*   **🛡 Розумний запис на прийом**: Інтерактивна система вибору лікаря та вільного часового слоту з автоматичним контролем зайнятості та захистом від Timezone-багів.
+*   **📑 Кабінет пацієнта**: Історія звернень, статус лікування та прямий зв'язок з лікарем.
+*   **👩‍⚕️ Панель лікаря та реєстратури**: Ефективне управління чергою, обробка звернень та чат з пацієнтами.
+*   **📊 Адмін-панель**: Керування користувачами, аналітика звернень та моніторинг активності.
+*   **🌐 Повна локалізація**: Двомовний інтерфейс (Українська / Англійська) на рівні UI та системних повідомлень.
+*   **📧 Професійні сповіщення**: Естетичні email-шаблони для OTP-верифікації та оновлення статусів.
+*   **🌓 Темна та світла теми**: Повністю адаптований інтерфейс з преміальним дизайном на базі Material UI.
 
-### 2. Клонування та налаштування
+---
+
+## 🛠 Технологічний стек
+
+| Складник | Технології |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, Redux Toolkit, Material UI (MUI) v5, i18next |
+| **Backend** | Fastify 4, Node.js, Prisma ORM, Zod, JWT Auth |
+| **Database** | PostgreSQL 16 (Relational data), Prisma Studio |
+| **Email** | Nodemailer (SMTP) з HTML-шаблонами |
+| **Ops** | Docker, Docker Compose, Nginx (Stage build) |
+
+---
+
+## 🚀 Швидкий запуск (Docker)
+
+Найшвидший спосіб запустити весь проєкт — використати Docker Compose:
 
 ```bash
-# Скопіювати env файл
+# 1. Створіть .env файл для бекенду (використовуйте .env.example)
 cp .env.example backend/.env
 
-# Запустити базу даних
-docker-compose up -d
-
-# Або з pgAdmin (для розробки)
-docker-compose --profile dev up -d
+# 2. Запустіть контейнери (Backend, Frontend, Postgres)
+docker-compose up -d --build
 ```
+*   **Frontend**: [http://localhost:5173](http://localhost:5173)
+*   **Backend API**: [http://localhost:3001](http://localhost:3001)
+*   **pgAdmin** (опціонально): [http://localhost:5050](http://localhost:5050) (використовуйте `--profile dev`)
 
-### 3. Backend
+---
 
+## 💻 Локальна розробка
+
+Якщо ви хочете запустити компоненти окремо:
+
+### Backend
 ```bash
 cd backend
 npm install
-npx prisma migrate dev --name init
-node prisma/seed.js
+npx prisma migrate dev
+node prisma/seed.js # Наповнення тестовими даними
 npm run dev
 ```
 
-API доступний на: http://localhost:4000
-Swagger документація: http://localhost:4000/documentation
-
-### 4. Frontend
-
+### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Додаток доступний на: http://localhost:5173
+---
 
-## 🔄 Синхронізація бази даних (Prisma)
+## 🔐 Облікові дані для тестування
 
-Якщо ви отримуєте помилку `P2022` (відсутня колонка) або змінили `schema.prisma`:
+Після виконання `seed.js` ви можете увійти в систему:
 
-1.  **Синхронізація схеми**:
-    ```bash
-    cd backend
-    npx prisma db push
-    ```
-    *Для розробки можна використовувати `--accept-data-loss`.*
+| Роль | Email | Пароль |
+| :--- | :--- | :--- |
+| **Admin** | `admin@perechyn-hospital.gov.ua` | `Admin@12345` |
+| **Doctor** | `doctor@perechyn-hospital.gov.ua` | `Doctor@12345` |
 
-2.  **Оновлення клієнта**:
-    ```bash
-    npx prisma generate
-    ```
+---
 
-3.  **Наповнення даними (Seed)**:
-    ```bash
-    node prisma/seed.js
-    ```
+## 📁 Структура проєкту
 
-## Ролі користувачів
-
-| Роль | Опис |
-|------|------|
-| `ADMIN` | Повний доступ до системи |
-| `DOCTOR` | Перегляд та відповідь на звернення |
-| `USER` | Реєстрація та перегляд власних звернень |
-
-## Облікові дані за замовчуванням
-
-Після запуску `node prisma/seed.js`:
-
-```
-Email: admin@perechyn-hospital.gov.ua
-Пароль: Admin@12345
+```bash
+root/
+├── backend/                  # Fastify Сервер
+│   ├── prisma/               # Схема БД та Міграції
+│   └── src/                  # Вихідний код (Controller-Service-Routes)
+├── frontend/                 # React Додаток
+│   ├── src/api/              # Axios клієнти
+│   ├── src/components/       # MUI Компоненти
+│   ├── src/store/            # Redux Стейт
+│   └── src/locales/          # i18n JSON переклади
+├── docker-compose.yml        # Оркестрація контейнерів
+└── .env.example              # Шаблон змінних середовища
 ```
 
-## API Endpoints
+---
 
-Повна документація доступна за адресою: http://localhost:4000/documentation
+## 📄 Ліцензія
 
-### Авторизація
-- `POST /api/auth/register` — Реєстрація нового користувача
-- `POST /api/auth/login` — Вхід до системи
-- `POST /api/auth/refresh` — Оновлення access токена
-- `POST /api/auth/logout` — Вихід
-
-### Звернення
-- `GET /api/appeals` — Список звернень (Auth)
-- `POST /api/appeals` — Нове звернення (Auth)
-- `GET /api/appeals/:id` — Деталі звернення (Auth)
-
-### Адміністрування
-- `GET /api/admin/users` — Всі користувачі (Admin)
-- `GET /api/admin/appeals` — Всі звернення (Admin/Doctor)
-- `GET /api/admin/stats` — Статистика (Admin)
-
-## Структура проекту
-
-```
-perechyn-hospital-portal/
-├── backend/                  # Fastify API
-│   ├── prisma/               # Схема БД та seed
-│   └── src/
-│       ├── config/           # Конфігурація
-│       ├── middleware/       # Auth middleware
-│       ├── modules/          # Feature modules
-│       ├── plugins/          # Fastify плагіни
-│       ├── utils/            # Утиліти
-│       └── app.js            # App factory
-├── frontend/                 # React SPA
-│   └── src/
-│       ├── api/              # API клієнт
-│       ├── components/       # UI компоненти
-│       ├── pages/            # Сторінки
-│       ├── router/           # Маршрутизація
-│       ├── store/            # Redux store
-│       └── theme/            # MUI тема
-├── docker-compose.yml
-└── .env.example
-```
-
-## Ліцензія
-
-Розроблено для Перечинської ЦРЛ © 2025
+Розроблено спеціально для **Перечинської ЦРЛ**. Усі права захищено © 2026.
